@@ -6,11 +6,13 @@ import { assignment1 } from "../data";
 import { assignment2 } from "../data";
 import Quiz2 from "./Quiz2";
 import BuildQuiz from "./BuildQuiz";
+import GlobalStyle from "./GlobalStyles";
 
 function App() {
 
   return (
     <>
+      <GlobalStyle/>
       <BuildQuiz/>
       {/* <Container>
         <p className="title">{assignment2.title}</p>
