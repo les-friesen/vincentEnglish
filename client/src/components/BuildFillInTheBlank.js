@@ -2,11 +2,29 @@ import styled from "styled-components"
 import { useState } from "react"
 import { TextareaAutosize } from '@mui/base/TextareaAutosize';
 
-const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQuestionType}) => {
+const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQuestionType, initialQuestionText, initialFragments, initialCorrectAnswers, questionIndex}) => {
     
-    const [fragments, setFragments] = useState([]);
-    const [questionText, setQuestionText] = useState("");
-    const [correctAnswers, setCorrectAnswers] = useState([])
+    const [fragments, setFragments] = useState(() => {
+        if (!initialFragments) {
+            return []
+        } else {
+            return initialFragments
+        }
+    });
+    const [questionText, setQuestionText] = useState(() => {
+        if (!initialQuestionText) {
+            return ""
+        } else {
+            return initialQuestionText
+        }
+    })
+    const [correctAnswers, setCorrectAnswers] = useState(() => {
+        if (!initialCorrectAnswers) {
+            return []
+        } else {
+            return initialCorrectAnswers
+        }
+    });
 
     const handleChange = (value) => {
         setQuestionText(value)
@@ -28,21 +46,36 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        setQuestions([...questions, {
-            type: "fillInTheBlank",
-            fragments: fragments,
-            correctAnswers: correctAnswers
-        }])
-        setNewQuestion(false)
-        setNewQuestionType("select")
+
+        if (questionIndex >= 0) {
+            const editedQuestions = [...questions]
+            editedQuestions[questionIndex] = {
+                    type: "fillInTheBlank",
+                    fragments: fragments,
+                    questionText: questionText, 
+                    correctAnswers: correctAnswers
+                }
+                setQuestions(editedQuestions)
+            } else {
+            setQuestions(
+                [...questions, {
+                    type: "fillInTheBlank",
+                    fragments: fragments,
+                    questionText: questionText, 
+                    correctAnswers: correctAnswers
+                }]
+            )
+            setNewQuestion(false)
+            setNewQuestionType("select")
+            }
     }
 
     return (
         <form onSubmit={handleSubmit}> 
             <p>Write the complete text in the box below. Add an asterisk, *, wherever you'd like to add a blank. <br></br>
                 <span className="example">Example: She (throw) * away the letter that she (write) * . </span></p>
-            <TextareaAutosize required minRows={3} style={{width: "98%", fontFamily: "Roboto"}} onChange={(e) => handleChange(e.target.value)}/>
-                <button type="button" onClick={handleVerifyText}>Verify Text</button>
+            <TextareaAutosize required minRows={3} style={{width: "98%", fontFamily: "Roboto"}} value={questionText} onChange={(e) => handleChange(e.target.value)}/>
+                <button type="button" disabled={questionText === initialQuestionText} onClick={handleVerifyText}>Verify Text</button>
                     {
                         fragments.length > 0 &&
                         <>
@@ -54,10 +87,11 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
                                     index !== fragments.length - 1 && 
                                         <>
                                         <br></br>
-                                        <span>Answer for blank #{index + 1}  </span>
+                                        <span>Answer(s) for blank #{index + 1}  </span>
                                         <input 
                                             required
                                             id={index}
+                                            value={correctAnswers[index]?.join(", ")}
                                             key={index}
                                             onChange={(e) => handleAnswerChange(e.target.id, e.target.value)}
                                             type="text" /> 
@@ -67,7 +101,7 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
                                 )
                             })
                             }
-                            <button type="submit" disabled={correctAnswers.length === fragments.length - 1 ? false : true}>Save Question</button>
+                            <button type="submit" disabled={correctAnswers === initialCorrectAnswers && questionText === initialQuestionText ? true : correctAnswers.length === fragments.length - 1 ? false : true}>Save Question</button>
                         </>
                     }
         </form>
