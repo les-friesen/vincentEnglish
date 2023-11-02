@@ -268,6 +268,12 @@ label {
     padding: 2px; 
 }
 
+ol {
+    list-style-type: upper-alpha;
+    margin-left: 10px;  
+    list-style-position: inside;
+}
+
 input, .composeText {
     font-family: Open Sans; 
 }

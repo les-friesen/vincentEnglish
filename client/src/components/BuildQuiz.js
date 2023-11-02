@@ -3,6 +3,7 @@ import { useState, useRef } from "react";
 import BuildFillInTheBlank from "./BuildFillInTheBlank";
 import BuildComposeText from "./BuildComposeText";
 import BuildMultipleChoice from "./BuildMultipleChoice";
+import Quiz2 from "./Quiz2";
 
 const BuildQuiz = () => {
 
@@ -11,7 +12,12 @@ const BuildQuiz = () => {
     const [newQuestion, setNewQuestion] = useState(false)
     
     const [newQuestionType, setNewQuestionType] = useState("select")
+    const [preview, setPreview] = useState(false)
     
+    const handlePreview = () => {
+        setPreview(!preview)
+    }
+
     const handleAddNewQuestion = () => {
         setNewQuestion(!newQuestion)
         if (newQuestion === true) {
@@ -38,12 +44,11 @@ const BuildQuiz = () => {
     const dragOverQuestion = useRef();
     
     const dragQuestionStart = (e, position) => {
-       
         dragQuestion.current = position;
         setIsDragging(position)
         console.log(position)
     };
-     
+
     const dragQuestionEnter = (e, position) => {
         dragOverQuestion.current = position; 
     };
@@ -76,7 +81,7 @@ const BuildQuiz = () => {
                             <span>{index+1}.  </span>           
                             { question.type === "fillInTheBlank" &&
                             <>
-                                <span>Fill In The Blank</span>
+                                <span className="heading">Fill In The Blank</span>
                                 <BuildFillInTheBlank 
                                         questions={questions} 
                                         setQuestions={setQuestions} 
@@ -93,7 +98,7 @@ const BuildQuiz = () => {
                             }
                             { question.type === "composeText" &&
                             <>
-                                <span>Compose Text</span>
+                                <span className="heading">Compose Text</span>
                                 <BuildComposeText 
                                         questions={questions} 
                                         setQuestions={setQuestions} 
@@ -108,7 +113,7 @@ const BuildQuiz = () => {
                             }
                             { question.type === "multipleChoice" &&
                             <>
-                                <span>Multiple Choice</span>
+                                <span className="heading">Multiple Choice</span>
                                 <BuildMultipleChoice 
                                         questions={questions} 
                                         setQuestions={setQuestions} 
@@ -148,6 +153,10 @@ const BuildQuiz = () => {
                         }
                     </div>
                 }
+                <button type="button" onClick={handlePreview}>Preview Quiz</button>
+                { preview &&    
+                    <Quiz2 questions={questions}/>
+                }
             </div> 
         </Container>
     )
@@ -155,26 +164,28 @@ const BuildQuiz = () => {
 
 const Container = styled.div`
 font-family: Roboto; 
-width: 100%;
-height: 100%;
+width: 100vw;
 display: flex;
-justify-content: center;
 
 .subContainer {
-    width: 85%; 
+    width: 100vw; 
+    min-height: 100vh; 
     border: solid black 1px;
-    background-color: lightblue; 
+    background-color: white;  
     padding: 20px; 
     display: flex; 
     flex-direction: column; 
-    justify-content: center; 
     align-items: center; 
+}
+
+input, textarea {
+    border: solid black 1px; 
 }
 
 .title {
     font-weight: bold; 
     font-size: 1.5em; 
-    text-align: center; 
+    text-align: center;  
 }
 
 .isDragging {
@@ -184,15 +195,21 @@ justify-content: center;
 .newQuestionContainer {
     transform: translate3d(0, 0, 0);
     padding: 20px; 
-    width: 70%;
+    width: 80vw; 
     border: solid black 1px; 
-    background-color: lightyellow; 
+    background-color: lightblue; 
     margin-bottom: 10px; 
+    border-radius: 5px; 
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.04) 0px 10px 10px -5px;
 }
 
 .example {
     font-size: .7em;
     font-style: italic; 
+}
+
+.heading {
+    font-weight: bold; 
 }
 
 .inputDiv {
@@ -206,6 +223,10 @@ p {
 button {
     margin-top: 10px; 
     font-family: Roboto; 
+    background-color: lightyellow;
+    border: solid grey 1px; 
+    border-radius: 5px; 
+    height: 22px; 
 }
 `
 

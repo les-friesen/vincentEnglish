@@ -31,6 +31,7 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
     //         return initialCorrectAnswers
     //     }
     // });
+    // const [addAnswers, setAddAnswers] = useState([])
 
     useEffect(() => {
         if (!initialFragments) {
@@ -62,9 +63,13 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
 
     const handleVerifyText = () => {
         setFragments((questionText.split("*").map(str => str.trim())))
+        // if (correctAnswers.length === 0) {
+        //     setCorrectAnswers(Array(questionText.split("*").length - 1).fill([]))
+        // } else {
         let answers = [...correctAnswers].slice(0, questionText.split("*").length - 1)
         setCorrectAnswers(answers)
-    }
+        }
+    
 
     const handleAnswerChange = (id, value) => {
         let answers = [...correctAnswers]
@@ -74,6 +79,37 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
         answers[id] = [value]
         }
         setCorrectAnswers(answers)
+    }
+
+    // const handleAnswerChange = (id, value) => {
+    //     let answers = [...addAnswers]
+    //     answers[id] = value
+    //     setAddAnswers(answers)
+    // }
+
+    const handleAddAnswer = (index) => {
+
+        // if (addAnswers[index].length > 0) {
+
+        // let correct = [...correctAnswers]
+
+        // correct[index] = [addAnswers[index]]
+       
+      
+        // setCorrectAnswers(correct)
+        
+        // let add = [...addAnswers]
+        // add[index] = ""
+        // setAddAnswers(add)
+    }
+
+    const deleteAnswer = (index, ansIndex) => {
+        let newArray = [...correctAnswers[index]]
+        newArray.splice(ansIndex, 1)
+
+        let newAnswers = [...correctAnswers]
+        newAnswers[index] = newArray
+        setCorrectAnswers(newAnswers)
     }
 
     const deleteQuestion = () => {
@@ -110,7 +146,7 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
 
     return (
         <FillInTheBlankForm onSubmit={handleSubmit}> 
-            <p>Write the complete text in the box below. Add an asterisk, *, wherever you'd like to add a blank. <br></br>
+            <p>Write the complete text in the box below. Add an asterisk, *, wherever you'd like to add a blank. Then click "Verify Text" to generate answer inputs for each blank. You can edit and re-verify the text at any time. <br></br>
                 <span className="example">Example: She (throw) * away the letter that she (write) * . </span></p>
             <TextareaAutosize   onMouseEnter={handleMouseEnter} 
                                 onMouseLeave={handleMouseOut} 
@@ -126,7 +162,7 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
                     {
                         fragments.length > 0 &&
                         <>
-                        <p>Enter the correct answers for each blank below, in order. If there are multiple acceptable answers for a blank, separate them with a comma, without spaces. Answers will be case and spelling sensitive.</p>
+                        <p>Enter the correct answers for each blank below, in order. If there are multiple acceptable answers for a blank, separate them with a comma. Answers are case and spelling sensitive (be careful of unwanted spaces!)</p>
                             {fragments.map((fragment,index) => {
                                 return (
                                     <div className="inputDiv" key={index}>    
@@ -134,18 +170,28 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
                                     index !== fragments.length - 1 && 
                                         <>
                                         <br></br>
-                                        <span>Answer(s) for blank #{index + 1}  </span>
+                                        <span>Answer(s) for blank #{index + 1}</span>
+                                        
                                         <input 
                                             required
                                             id={index}
                                             style={{fontFamily: "Roboto"}}
-                                            value={correctAnswers[index] ? correctAnswers[index] : ""}
+                                            value={correctAnswers[index] ? correctAnswers[index].join(", ") : ""}
                                             key={index}
                                             onMouseEnter={handleMouseEnter}
                                             onMouseLeave={handleMouseOut}
                                             onChange={(e) => handleAnswerChange(e.target.id, e.target.value)}
                                             type="text" /> 
-                                        </>
+                                        {/* <button className="addAnswer" type="button" onClick={handleAddAnswer(index)}>Add Answer</button> */}
+                                        {correctAnswers[index]?.map((ans, ansIndex) => {
+                                            return(
+                                                <div className="answer">
+                                                    <span>{ans}</span>
+                                                    <button type="button" onClick={() => deleteAnswer(index, ansIndex)} className="trash"><FiTrash2 size={12}/></button>
+                                                </div>
+                                        )}
+                                         )}
+                                        </> 
                                     }
                                     </div>
                                 )
@@ -182,6 +228,16 @@ const FillInTheBlankForm = styled.form`
     background-color: transparent;
     border: none; 
     margin-top: 0px; 
+    
+}
+
+.inputDiv {
+    display: flex; 
+    flex-direction: row; 
+    align-items: center; 
+    margin-bottom: 10px; 
+    flex-wrap: wrap; 
+    line-height: 1.6; 
 }
 
 .saveDeleteContainer {
@@ -191,8 +247,21 @@ const FillInTheBlankForm = styled.form`
     margin-top: 10px; 
 }
 
-.submitButton {
-    margin-top: 0px; 
+.submitButton, .addAnswer {
+    margin-top: 0px;
+}
+
+.answer {
+    background-color: pink;
+    font-size: 0.9em; 
+    border-radius: 5px; 
+    margin-left: 5px;
+    margin-top: 2px;  
+    padding-left: 5px; 
+}
+
+input {
+    margin: 0px 5px 0px 5px; 
 }
 
 `

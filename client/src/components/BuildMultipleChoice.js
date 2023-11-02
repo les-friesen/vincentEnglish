@@ -133,7 +133,7 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
 
     return (
         <MultipleChoiceForm onSubmit={handleSubmit}> 
-            <p>Write a question in the text box below, and add between 2 and 6 multiple choice options in the input below. Select the correct answer from the options.</p> 
+            <p>Write a question in the text box below.</p>
             <TextareaAutosize   required 
                                 onMouseEnter={handleMouseEnter} 
                                 onMouseLeave={handleMouseOut} 
@@ -141,10 +141,12 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
                                 style={{width: "98%", fontFamily: "Roboto"}} 
                                 value={questionText} 
                                 onChange={(e) => handleChange(e.target.value)}/>
+                <p> Add between 2-6 options, one at a time, by entering text in the input below and clicking "Add Option". Options can be reordered via drag and drop or deleted. Select the correct answer before saving.</p> 
                 <button type="button" disabled={options?.length >= 6 ? true : false} onClick={handleAddOption}>Add Option</button> 
                 <input  onMouseEnter={handleMouseEnter} 
                         onMouseLeave={handleMouseOut} 
                         type="text" 
+                        className="addOption"
                         value={addOption} 
                         onChange={handleOptionChange}>
                 </input>
@@ -158,6 +160,7 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
                                     <li onDragStart={(e) => dragOptionStart(e, index)}
                                         onDragEnter={(e) => dragOptionEnter(e, index)}
                                         onDragEnd={drop}
+                                        className="listItem"
                                         onDragOver={(e) => e.preventDefault()}
                                         draggable>
                                             <input  type="radio" 
@@ -204,19 +207,25 @@ ol {
     list-style-type: upper-alpha;
     margin-left: 10px;  
     list-style-position: inside;
-   
 }
 
 li {
     line-height: 1.6;
+    margin-bottom: 5px; 
     display: list-item; 
     min-width: 120px; 
-     
-    
 }
 
 .choice { 
     margin-top: 0px; 
+}
+
+.listItem {
+    background-color: pink;
+    font-size: 0.9em; 
+    border-radius: 5px; 
+    margin-left: 5px; 
+    padding-left: 5px; 
 }
 
 .trash {
@@ -230,6 +239,10 @@ li {
     flex-direction: row; 
     align-items: center;
     
+}
+
+.addOption {
+    margin-left: 5px; 
 }
 
 .options-title {

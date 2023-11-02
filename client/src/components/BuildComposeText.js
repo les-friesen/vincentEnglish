@@ -81,7 +81,7 @@ const BuildComposeText = ({questions, setQuestions, setNewQuestion, setNewQuesti
 
     return (
         <ComposeTextForm onSubmit={handleSubmit}> 
-            <p>Write one or more text prompts in the box below. For multiple prompts, add an asterisk, *, to separate them. <br></br>
+            <p>Write one or more text prompts in the box below. For multiple prompts, add an asterisk, *, to separate them. Click verify text before saving.<br></br>
                 <span className="example">Example: What is your favourite song? * Who is your favourite artist? </span></p>
             <TextareaAutosize 
                     onMouseEnter={handleMouseEnter} 
