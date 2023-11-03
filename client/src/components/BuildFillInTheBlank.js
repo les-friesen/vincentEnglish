@@ -2,6 +2,7 @@ import styled from "styled-components"
 import { useState, useEffect } from "react"
 import { TextareaAutosize } from '@mui/base/TextareaAutosize';
 import { FiTrash2 } from "react-icons/fi";
+import { TagsInput } from "react-tag-input-component";
 
 const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQuestionType, initialQuestionText, initialFragments, initialCorrectAnswers, questionIndex, handleMouseEnter, handleMouseOut}) => {
     
@@ -31,7 +32,7 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
     //         return initialCorrectAnswers
     //     }
     // });
-    // const [addAnswers, setAddAnswers] = useState([])
+    const [addAnswers, setAddAnswers] = useState([])
 
     useEffect(() => {
         if (!initialFragments) {
@@ -63,44 +64,37 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
 
     const handleVerifyText = () => {
         setFragments((questionText.split("*").map(str => str.trim())))
-        // if (correctAnswers.length === 0) {
-        //     setCorrectAnswers(Array(questionText.split("*").length - 1).fill([]))
-        // } else {
         let answers = [...correctAnswers].slice(0, questionText.split("*").length - 1)
         setCorrectAnswers(answers)
         }
     
-
-    const handleAnswerChange = (id, value) => {
-        let answers = [...correctAnswers]
-        if (value.includes(",")) {
-            answers[id] = value.split(/,\s*/)
-        } else {
-        answers[id] = [value]
-        }
-        setCorrectAnswers(answers)
-    }
-
     // const handleAnswerChange = (id, value) => {
-    //     let answers = [...addAnswers]
-    //     answers[id] = value
-    //     setAddAnswers(answers)
+    //     let answers = [...correctAnswers]
+    //     if (value.includes(",")) {
+    //         answers[id] = value.split(/,\s*/)
+    //     } else {
+    //     answers[id] = [value]
+    //     }
+    //     setCorrectAnswers(answers)
     // }
 
+    const handleAnswerChange = (id, value) => {
+        let answers = [...addAnswers]
+        answers[id] = value
+        setAddAnswers(answers)
+    }
+
     const handleAddAnswer = (index) => {
-
-        // if (addAnswers[index].length > 0) {
-
-        // let correct = [...correctAnswers]
-
-        // correct[index] = [addAnswers[index]]
-       
-      
-        // setCorrectAnswers(correct)
-        
-        // let add = [...addAnswers]
-        // add[index] = ""
-        // setAddAnswers(add)
+        let correct = [...correctAnswers]
+        if (correct[index]) {
+            correct[index] = [...correctAnswers[index], addAnswers[index]]
+        } else {
+            correct[index] = [addAnswers[index]]
+        }
+        setCorrectAnswers(correct)
+        let add = [...addAnswers]
+        add[index] = ""
+        setAddAnswers(add) 
     }
 
     const deleteAnswer = (index, ansIndex) => {
@@ -171,18 +165,16 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
                                         <>
                                         <br></br>
                                         <span>Answer(s) for blank #{index + 1}</span>
-                                        
                                         <input 
-                                            required
                                             id={index}
                                             style={{fontFamily: "Roboto"}}
-                                            value={correctAnswers[index] ? correctAnswers[index].join(", ") : ""}
+                                            value={addAnswers[index] ? addAnswers[index] : ""}
                                             key={index}
                                             onMouseEnter={handleMouseEnter}
                                             onMouseLeave={handleMouseOut}
                                             onChange={(e) => handleAnswerChange(e.target.id, e.target.value)}
                                             type="text" /> 
-                                        {/* <button className="addAnswer" type="button" onClick={handleAddAnswer(index)}>Add Answer</button> */}
+                                        <button className="addAnswer" type="button" onClick={() => handleAddAnswer(index)}>Add Answer</button>
                                         {correctAnswers[index]?.map((ans, ansIndex) => {
                                             return(
                                                 <div className="answer">
@@ -190,7 +182,7 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
                                                     <button type="button" onClick={() => deleteAnswer(index, ansIndex)} className="trash"><FiTrash2 size={12}/></button>
                                                 </div>
                                         )}
-                                         )}
+                                        )}
                                         </> 
                                     }
                                     </div>

@@ -142,7 +142,7 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
                                 value={questionText} 
                                 onChange={(e) => handleChange(e.target.value)}/>
                 <p> Add between 2-6 options, one at a time, by entering text in the input below and clicking "Add Option". Options can be reordered via drag and drop or deleted. Select the correct answer before saving.</p> 
-                <button type="button" disabled={options?.length >= 6 ? true : false} onClick={handleAddOption}>Add Option</button> 
+                 
                 <input  onMouseEnter={handleMouseEnter} 
                         onMouseLeave={handleMouseOut} 
                         type="text" 
@@ -150,6 +150,7 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
                         value={addOption} 
                         onChange={handleOptionChange}>
                 </input>
+                <button type="button" disabled={options?.length >= 6 ? true : false} onClick={handleAddOption}>Add Option</button>
                 <p className="options-title"> Options ({options.length}/6) </p>
                 <ol>
                             { options?.map((option, index) => {
@@ -242,7 +243,7 @@ li {
 }
 
 .addOption {
-    margin-left: 5px; 
+    margin-right: 5px; 
 }
 
 .options-title {
