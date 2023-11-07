@@ -196,6 +196,8 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
                                                 ? true 
                                                 : correctAnswers.length < fragments.length - 1 
                                                 ? true 
+                                                : !correctAnswers.every(ans => ans.length > 0)
+                                                ? true
                                                 : false}>
                                         Save Question
                                 </button>
@@ -219,7 +221,8 @@ const FillInTheBlankForm = styled.form`
 .trash {
     background-color: transparent;
     border: none; 
-    margin-top: 0px; 
+    margin-top: 2px; 
+    height: 20px;
     
 }
 
@@ -245,11 +248,15 @@ const FillInTheBlankForm = styled.form`
 
 .answer {
     background-color: pink;
-    font-size: 0.9em; 
+    font-size: 0.8em; 
     border-radius: 5px; 
-    margin-left: 5px;
-    margin-top: 2px;  
+    margin: 1px 0px 1px 5px;  
     padding-left: 5px; 
+    border: solid grey 1px; 
+    height: 20px; 
+    display: flex;
+    flex-direction: row;
+    align-items: center; 
 }
 
 input {

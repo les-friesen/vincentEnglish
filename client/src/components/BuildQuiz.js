@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import BuildFillInTheBlank from "./BuildFillInTheBlank";
 import BuildComposeText from "./BuildComposeText";
 import BuildMultipleChoice from "./BuildMultipleChoice";
@@ -7,15 +7,31 @@ import Quiz2 from "./Quiz2";
 
 const BuildQuiz = () => {
 
-    const [questions, setQuestions] = useState([])
+    const [questions, setQuestions] = useState([]);
+    const [formData, setFormData] = useState({});
+    const [newQuestion, setNewQuestion] = useState(false);
+    const [newQuestionType, setNewQuestionType] = useState("select");
+    const [preview, setPreview] = useState(false);
+    const [isDragging, setIsDragging] = useState(); 
+    const [isDraggable, setIsDraggable] = useState(true); 
+    
+    useEffect(() => {
+        setFormData({
+            ...formData,
+            questions: questions
+        })
+    }, [questions]);
 
-    const [newQuestion, setNewQuestion] = useState(false)
-    
-    const [newQuestionType, setNewQuestionType] = useState("select")
-    const [preview, setPreview] = useState(false)
-    
     const handlePreview = () => {
         setPreview(!preview)
+    }
+
+    const handleFormChange = (id, value) => {
+        setFormData({
+            ...formData,
+            [id] : value,
+            questions: questions
+        }) 
     }
 
     const handleAddNewQuestion = () => {
@@ -28,9 +44,6 @@ const BuildQuiz = () => {
     const handleSelectType = (type) => {
         setNewQuestionType(type)
     }
-
-    const [isDragging, setIsDragging] = useState(); 
-    const [isDraggable, setIsDraggable] = useState(true); 
 
     const handleMouseEnter = () => {
         setIsDraggable(false)
@@ -68,6 +81,34 @@ const BuildQuiz = () => {
         <Container>
             <div className="subContainer">
                 <p className="title">Create a new module</p>
+                <div className="newQuestionContainer">
+                    
+                        <div className="introInputDiv">
+                            <label>Title</label>
+                            <input  type="text"
+                                    id="title"
+                                    value={formData.title}
+                                    onChange={(e) => handleFormChange(e.target.id, e.target.value)}
+                                    />
+                        </div>
+                        <div className="introInputDiv">
+                            <label>Subtitle</label>
+                            <input  type="text"
+                                    id="subtitle"
+                                    value={formData.subtitle}
+                                    onChange={(e) => handleFormChange(e.target.id, e.target.value)}
+                                    />
+                        </div>
+                        <div className="introInputDiv">
+                            <label>ID/URL</label>
+                            <input  type="text"
+                                    id="_id"
+                                    value={formData._id}
+                                    onChange={(e) => handleFormChange(e.target.id, e.target.value)}
+                                    />
+                        </div>
+                        <p>Each ID must be unique</p>  
+                </div>
                 { questions.length > 0 &&
                     questions.map((question, index) => {
                         return (
@@ -178,8 +219,20 @@ display: flex;
     align-items: center; 
 }
 
+.introInputDiv {
+    display: flex; 
+    flex-direction: row; 
+    justify-content: space-between; 
+    width: 250px; 
+    margin-bottom: 5px; 
+    input {
+        width: 175px; 
+    }
+}
+
 input, textarea {
     border: solid black 1px; 
+   
 }
 
 .title {
