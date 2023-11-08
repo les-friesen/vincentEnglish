@@ -55,7 +55,7 @@ const BuildQuiz = () => {
 
     const dragQuestion = useRef();
     const dragOverQuestion = useRef();
-    
+
     const dragQuestionStart = (e, position) => {
         dragQuestion.current = position;
         setIsDragging(position)
@@ -82,7 +82,6 @@ const BuildQuiz = () => {
             <div className="subContainer">
                 <p className="title">Create a new module</p>
                 <div className="newQuestionContainer">
-                    
                         <div className="introInputDiv">
                             <label>Title</label>
                             <input  type="text"
@@ -107,7 +106,7 @@ const BuildQuiz = () => {
                                     onChange={(e) => handleFormChange(e.target.id, e.target.value)}
                                     />
                         </div>
-                        <p>Each ID must be unique</p>  
+                        <p className="text">Each ID must be unique</p>  
                 </div>
                 { questions.length > 0 &&
                     questions.map((question, index) => {
@@ -131,6 +130,7 @@ const BuildQuiz = () => {
                                         initialFragments={question.fragments}
                                         initialQuestionText={question.questionText}
                                         initialCorrectAnswers={question.correctAnswers}
+                                        initialImages={question.images}
                                         questionIndex={index}
                                         handleMouseEnter={handleMouseEnter}
                                         handleMouseOut={handleMouseOut}
@@ -147,6 +147,7 @@ const BuildQuiz = () => {
                                         setNewQuestionType={setNewQuestionType}
                                         initialFragments={question.fragments}
                                         initialQuestionText={question.questionText}
+                                        initialImages={question.images}
                                         questionIndex={index}
                                         handleMouseEnter={handleMouseEnter}
                                         handleMouseOut={handleMouseOut}/> 
@@ -163,6 +164,7 @@ const BuildQuiz = () => {
                                         initialQuestionText={question.question}
                                         initialCorrectAnswers={question.correctAnswers}
                                         initialOptions={question.options}
+                                        initialImages={question.images}
                                         questionIndex={index}
                                         handleMouseEnter={handleMouseEnter}
                                         handleMouseOut={handleMouseOut}/>
@@ -173,7 +175,7 @@ const BuildQuiz = () => {
                         )
                     })
                 }
-                <button onClick={handleAddNewQuestion}>{newQuestion ? "Cancel" : "Add new question"}</button>
+                <button onClick={handleAddNewQuestion}>{newQuestion ? "Cancel" : "Add New Question"}</button>
                 {
                     newQuestion &&
                     <div className="newQuestionContainer">
@@ -232,7 +234,7 @@ display: flex;
 
 input, textarea {
     border: solid black 1px; 
-   
+    font-family: Roboto; 
 }
 
 .title {

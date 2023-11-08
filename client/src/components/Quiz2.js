@@ -6,6 +6,7 @@ import FillInTheBlank from "./FillInTheBlank";
 import MultipleChoice from "./MultipleChoice";
 import ComposeText from "./ComposeText";
 import Result from "./Result";
+import ImageDisplay from "./ImageDisplay";
 
 const Quiz2 = ( {questions} ) => {
 
@@ -196,21 +197,24 @@ const Quiz2 = ( {questions} ) => {
                     </div> 
                 </>
                 :
-                <form onSubmit={handleCheck}>
-                    { questions[currentQuestion].type === "fillInTheBlank" && 
-                        <FillInTheBlank question={questions[currentQuestion]} button={button} handleChange={handleChange} answers={answers} inputRef={inputRef} currentQuestion={currentQuestion}/> 
-                    }
-                    { questions[currentQuestion].type === "multipleChoice" &&
-                        <MultipleChoice question={questions[currentQuestion]} button={button} handleChange={handleChange} answers={answers} inputRef={inputRef} currentQuestion={currentQuestion} /> 
-                    }
-                    { questions[currentQuestion].type === "composeText" &&
-                        <ComposeText question={questions[currentQuestion]} button={button} handleChange={handleChange} answers={answers} inputRef={inputRef} currentQuestion={currentQuestion} /> 
-                    }
-                    <br/>
-                    <div className="buttonContainer">
-                        <button type="submit" ref={buttonRef}>{button}</button>
-                    </div>
-                </form>
+                <>
+                    <ImageDisplay images={questions[currentQuestion].images} />
+                    <form onSubmit={handleCheck}>
+                        { questions[currentQuestion].type === "fillInTheBlank" && 
+                            <FillInTheBlank question={questions[currentQuestion]} button={button} handleChange={handleChange} answers={answers} inputRef={inputRef} currentQuestion={currentQuestion}/> 
+                        }
+                        { questions[currentQuestion].type === "multipleChoice" &&
+                            <MultipleChoice question={questions[currentQuestion]} button={button} handleChange={handleChange} answers={answers} inputRef={inputRef} currentQuestion={currentQuestion} /> 
+                        }
+                        { questions[currentQuestion].type === "composeText" &&
+                            <ComposeText question={questions[currentQuestion]} button={button} handleChange={handleChange} answers={answers} inputRef={inputRef} currentQuestion={currentQuestion} /> 
+                        }
+                        <br/>
+                        <div className="buttonContainer">
+                            <button type="submit" ref={buttonRef}>{button}</button>
+                        </div>
+                    </form>
+                </>
                 }
             </div> 
         </Container>

@@ -2,9 +2,9 @@ import styled from "styled-components"
 import { useState, useEffect } from "react"
 import { TextareaAutosize } from '@mui/base/TextareaAutosize';
 import { FiTrash2 } from "react-icons/fi";
-import { TagsInput } from "react-tag-input-component";
+import ImageUpload from "./ImageUpload";
 
-const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQuestionType, initialQuestionText, initialFragments, initialCorrectAnswers, questionIndex, handleMouseEnter, handleMouseOut}) => {
+const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQuestionType, initialQuestionText, initialFragments, initialCorrectAnswers, initialImages, questionIndex, handleMouseEnter, handleMouseOut}) => {
     
     const [fragments, setFragments] = useState([])
         // () => {
@@ -32,7 +32,12 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
     //         return initialCorrectAnswers
     //     }
     // });
+
+    const [images, setImages] = useState([])
+
     const [addAnswers, setAddAnswers] = useState([])
+
+    // const [addImages, setAddImages] = useState(false)
 
     useEffect(() => {
         if (!initialFragments) {
@@ -41,6 +46,14 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
             setFragments(initialFragments)
         }
     }, [initialFragments]);
+
+    useEffect(() => {
+        if (!initialImages) {
+            setImages([])
+        } else {
+            setImages(initialImages)
+        }
+    }, [initialImages]);
 
     useEffect(() => {
         if (!initialQuestionText) {
@@ -121,7 +134,8 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
                     type: "fillInTheBlank",
                     fragments: fragments,
                     questionText: questionText, 
-                    correctAnswers: correctAnswers
+                    correctAnswers: correctAnswers,
+                    images: images
                 }
                 setQuestions(editedQuestions)
             } else {
@@ -130,7 +144,8 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
                     type: "fillInTheBlank",
                     fragments: fragments,
                     questionText: questionText, 
-                    correctAnswers: correctAnswers
+                    correctAnswers: correctAnswers,
+                    images: images
                 }]
             )
             setNewQuestion(false)
@@ -139,7 +154,7 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
     }
 
     return (
-        <FillInTheBlankForm onSubmit={handleSubmit}> 
+        <FillInTheBlankDiv> 
             <p>Write the complete text in the box below. Add an asterisk, *, wherever you'd like to add a blank. Then click "Verify Text" to generate answer inputs for each blank. You can edit and re-verify the text at any time. <br></br>
                 <span className="example">Example: She (throw) * away the letter that she (write) * . </span></p>
             <TextareaAutosize   onMouseEnter={handleMouseEnter} 
@@ -156,43 +171,46 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
                     {
                         fragments.length > 0 &&
                         <>
-                        <p>Enter the correct answers for each blank below, in order. If there are multiple acceptable answers for a blank, separate them with a comma. Answers are case and spelling sensitive (be careful of unwanted spaces!)</p>
+                        <p>Enter the correct answers for each blank below, one at a time, by entering text in the corresponding input and clicking "Add Answer". 
+                            Answers can be deleted, and each blank must have at least one answer. Answers are case and spelling sensitive (be careful of unwanted spaces!)</p>
                             {fragments.map((fragment,index) => {
                                 return (
-                                    <div className="inputDiv" key={index}>    
+                                    <div key={index}>
                                     { 
                                     index !== fragments.length - 1 && 
-                                        <>
-                                        <br></br>
-                                        <span>Answer(s) for blank #{index + 1}</span>
-                                        <input 
-                                            id={index}
-                                            style={{fontFamily: "Roboto"}}
-                                            value={addAnswers[index] ? addAnswers[index] : ""}
-                                            key={index}
-                                            onMouseEnter={handleMouseEnter}
-                                            onMouseLeave={handleMouseOut}
-                                            onChange={(e) => handleAnswerChange(e.target.id, e.target.value)}
-                                            type="text" /> 
-                                        <button className="addAnswer" type="button" onClick={() => handleAddAnswer(index)}>Add Answer</button>
-                                        {correctAnswers[index]?.map((ans, ansIndex) => {
-                                            return(
-                                                <div className="answer">
-                                                    <span>{ans}</span>
-                                                    <button type="button" onClick={() => deleteAnswer(index, ansIndex)} className="trash"><FiTrash2 size={12}/></button>
-                                                </div>
-                                        )}
-                                        )}
-                                        </> 
+                                        <div className="inputDiv" key={index}> 
+                                            <br></br>
+                                            <span>Answer(s) for blank #{index + 1}</span>
+                                            <input 
+                                                id={index}
+                                                style={{fontFamily: "Roboto"}}
+                                                value={addAnswers[index] ? addAnswers[index] : ""}
+                                                key={index}
+                                                onMouseEnter={handleMouseEnter}
+                                                onMouseLeave={handleMouseOut}
+                                                onChange={(e) => handleAnswerChange(e.target.id, e.target.value)}
+                                                type="text" /> 
+                                            <button className="addAnswer" type="button" onClick={() => handleAddAnswer(index)}>Add Answer</button>
+                                            {correctAnswers[index]?.map((ans, ansIndex) => {
+                                                return(
+                                                    <div className="answer">
+                                                        <span>{ans}</span>
+                                                        <button type="button" onClick={() => deleteAnswer(index, ansIndex)} className="trash"><FiTrash2 size={12}/></button>
+                                                    </div>
+                                            )}
+                                            )}
+                                        </div> 
                                     }
                                     </div>
                                 )
                             })
                             }
+                            <ImageUpload setImages={setImages} images={images}/>
                             <div className="saveDeleteContainer">
-                                <button type="submit" 
+                                <button type="button" 
                                         className="submitButton"
-                                        disabled={correctAnswers.toString() === initialCorrectAnswers?.toString() && questionText === initialQuestionText 
+                                        onClick={handleSubmit}
+                                        disabled={correctAnswers.toString() === initialCorrectAnswers?.toString() && questionText === initialQuestionText && images.toString() === initialImages?.toString()
                                                 ? true 
                                                 : correctAnswers.length < fragments.length - 1 
                                                 ? true 
@@ -212,11 +230,11 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
                             </div>
                         </>
                     }
-        </FillInTheBlankForm>
+        </FillInTheBlankDiv>
         )
 }
 
-const FillInTheBlankForm = styled.form`
+const FillInTheBlankDiv = styled.div`
 
 .trash {
     background-color: transparent;
@@ -242,7 +260,7 @@ const FillInTheBlankForm = styled.form`
     margin-top: 10px; 
 }
 
-.submitButton, .addAnswer {
+.submitButton, .addAnswer, .addImages {
     margin-top: 0px;
 }
 

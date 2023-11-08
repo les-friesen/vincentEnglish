@@ -2,8 +2,9 @@ import styled from "styled-components"
 import { useState, useRef, useEffect } from "react"
 import { TextareaAutosize } from '@mui/base/TextareaAutosize';
 import { FiTrash2 } from 'react-icons/fi'; 
+import ImageUpload from "./ImageUpload";
 
-const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQuestionType, initialQuestionText, initialCorrectAnswers, initialOptions, questionIndex, handleMouseEnter, handleMouseOut}) => {
+const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQuestionType, initialQuestionText, initialCorrectAnswers, initialOptions, initialImages, questionIndex, handleMouseEnter, handleMouseOut}) => {
     
     const [options, setOptions] = useState([])
     //     () => {
@@ -29,6 +30,16 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
     //         return initialCorrectAnswers
     //     }
     // });
+    const [images, setImages] = useState([])
+
+    useEffect(() => {
+        if (!initialImages) {
+            setImages([])
+        } else {
+            setImages(initialImages)
+        }
+    }, [initialImages]);
+
     useEffect(() => {
         if (!initialOptions) {
             setOptions([])
@@ -114,7 +125,8 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
                     type: "multipleChoice",
                     question: questionText,
                     options: options,
-                    correctAnswers: correctAnswers 
+                    correctAnswers: correctAnswers,
+                    images: images
                 }
                 setQuestions(editedQuestions)
             } else {
@@ -123,7 +135,8 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
                     type: "multipleChoice",
                     question: questionText,
                     options: options,
-                    correctAnswers: correctAnswers 
+                    correctAnswers: correctAnswers,
+                    images: images
                 }]
             )
             setNewQuestion(false)
@@ -132,7 +145,7 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
     }
 
     return (
-        <MultipleChoiceForm onSubmit={handleSubmit}> 
+        <MultipleChoiceDiv> 
             <p>Write a question in the text box below.</p>
             <TextareaAutosize   required 
                                 onMouseEnter={handleMouseEnter} 
@@ -142,7 +155,6 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
                                 value={questionText} 
                                 onChange={(e) => handleChange(e.target.value)}/>
                 <p> Add between 2-6 options, one at a time, by entering text in the input below and clicking "Add Option". Options can be reordered via drag and drop or deleted. Select the correct answer before saving.</p> 
-                 
                 <input  onMouseEnter={handleMouseEnter} 
                         onMouseLeave={handleMouseOut} 
                         type="text" 
@@ -153,39 +165,45 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
                 <button type="button" disabled={options?.length >= 6 ? true : false} onClick={handleAddOption}>Add Option</button>
                 <p className="options-title"> Options ({options.length}/6) </p>
                 <ol>
-                            { options?.map((option, index) => {
-                                return (
-                                    <div className="optionContainer" 
-                                        
-                                        key={index}>
-                                    <li onDragStart={(e) => dragOptionStart(e, index)}
-                                        onDragEnter={(e) => dragOptionEnter(e, index)}
-                                        onDragEnd={drop}
-                                        className="listItem"
-                                        onDragOver={(e) => e.preventDefault()}
-                                        draggable>
-                                            <input  type="radio" 
-                                            name="choice" 
-                                            className="choice"
-                                            onChange={(e) => handleAnswerChange(e.target.value)}
-                                            checked={correctAnswers === option ? true : false}
-                                            required
-                                            value={option}/>
-                                        <label htmlFor="choice" 
-                                            >{option}</label>
-                                        <button type="button" onClick={() => deleteOption(index)} className="trash"><FiTrash2 size={13}/></button>
-                                        
-                                    </li>
-                                    </div>
-                                )
-                            })}
-                 </ol>
-                 <div className="saveDeleteContainer">
-                    <button type="submit" 
+                    { options?.map((option, index) => {
+                        return (
+                            <div className="optionContainer"  
+                                key={index}>
+                                <li onDragStart={(e) => dragOptionStart(e, index)}
+                                    onDragEnter={(e) => dragOptionEnter(e, index)}
+                                    onDragEnd={drop}
+                                    className="listItem"
+                                    onDragOver={(e) => e.preventDefault()}
+                                    draggable>
+                                        <input  type="radio" 
+                                        name="choice" 
+                                        className="choice"
+                                        onChange={(e) => handleAnswerChange(e.target.value)}
+                                        checked={correctAnswers === option ? true : false}
+                                        required
+                                        value={option}/>
+                                    <label htmlFor="choice" 
+                                        >{option}</label>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => deleteOption(index)} 
+                                        className="trash">
+                                            <FiTrash2 size={13}/>
+                                    </button>
+                                </li>
+                            </div>
+                        )
+                    })}
+                </ol>
+                <ImageUpload setImages={setImages} images={images}/>
+                <div className="saveDeleteContainer">
+                    <button type="button" 
+                            onClick={handleSubmit}
                             className="submitButton"
                             disabled={options === initialOptions && 
                             correctAnswers === initialCorrectAnswers && 
-                            questionText === initialQuestionText 
+                            questionText === initialQuestionText &&
+                            images.toString() === initialImages?.toString()
                             ? true 
                             : options.length >= 2 ? 
                             false 
@@ -198,11 +216,11 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
                             <FiTrash2 size={15}/>
                     </button>
                 </div>
-        </MultipleChoiceForm>
+        </MultipleChoiceDiv>
         )
 }
 
-const MultipleChoiceForm = styled.form`
+const MultipleChoiceDiv = styled.div`
 
 ol {
     list-style-type: upper-alpha;

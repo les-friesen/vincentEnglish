@@ -1,7 +1,9 @@
+import styled from "styled-components";
+
 const MultipleChoice = ( {question, button, answers, currentQuestion, handleChange} ) => {
 
     return (
-        <div className="mcContainer">
+        <MultipleChoiceContainer>
             <p className="mcQuestion">
                 {question.question}
             </p>
@@ -25,8 +27,15 @@ const MultipleChoice = ( {question, button, answers, currentQuestion, handleChan
                 )
                 }
             </ol>
-        </div>
+        </MultipleChoiceContainer>
 )
 }
+
+const MultipleChoiceContainer = styled.div`
+line-height: 1.6; 
+margin: 10px 0px 10px 0px; 
+
+
+`;
 
 export default MultipleChoice; 
