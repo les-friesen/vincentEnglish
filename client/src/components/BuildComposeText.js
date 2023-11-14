@@ -1,8 +1,9 @@
 import styled from "styled-components"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { TextareaAutosize } from '@mui/base/TextareaAutosize';
 import { FiTrash2 } from "react-icons/fi";
 import ImageUpload from "./ImageUpload";
+import { Editor } from "@tinymce/tinymce-react";
 
 const BuildComposeText = ({questions, setQuestions, setNewQuestion, setNewQuestionType, initialFragments, initialQuestionText, initialImages, questionIndex, handleMouseEnter, handleMouseOut}) => {
     
@@ -25,6 +26,8 @@ const BuildComposeText = ({questions, setQuestions, setNewQuestion, setNewQuesti
     // }
     // );
     const [images, setImages] = useState([])
+
+    const editorRef = useRef(null);
 
     useEffect(() => {
         if (!initialImages) {
@@ -50,12 +53,12 @@ const BuildComposeText = ({questions, setQuestions, setNewQuestion, setNewQuesti
         }
     }, [initialQuestionText]);
 
-    const handleChange = (value) => {
-        setQuestionText(value)
-    }
+    // const handleChange = (value) => {
+    //     setQuestionText(value)
+    // }
 
     const handleVerifyText = () => {
-        setFragments((questionText.split("*").map(str => str.trim())))
+        setFragments((questionText.split(/_+/g)))
     }
 
     const deleteQuestion = () => {
@@ -93,29 +96,63 @@ const BuildComposeText = ({questions, setQuestions, setNewQuestion, setNewQuesti
 
     return (
         <ComposeTextDiv> 
-            <p>Write one or more text prompts in the box below. For multiple prompts, add an asterisk, *, to separate them. Click "Verify Text" before saving.<br></br>
-                <span className="example">Example: What is your favourite song? * Who is your favourite artist? </span></p>
-            <TextareaAutosize 
+            <ImageUpload setImages={setImages} images={images}/>
+            <p className="para">Write one or more text prompts in the box below. For multiple prompts, add an underscore, _, to separate them. Click "Verify Text" before saving. 
+                For best results, stop any rich text settings (bold, italic, etc.) before adding a new blank (blanks should not be rich text).
+                <br></br> 
+                <br></br>
+                <span className="example">
+                    Example: What is your favourite <strong>song?</strong> _ Who is your favourite <strong>artist?</strong> 
+                </span>
+            </p>
+            <Editor
+                apiKey='hggy776ed6votmeb2cy185ot2xr1ube1k8ol325vqtqk2lz7'
+                onInit={(evt, editor) => editorRef.current = editor}
+                initialValue={initialQuestionText}
+                value={questionText}
+                onEditorChange={(newValue, editor) => setQuestionText(newValue)}
+                init={{
+                height: 200,
+                menubar: false,
+                forced_root_block : 'false',
+                plugins: [
+                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                    'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | blocks | ' +
+                'bold italic forecolor backcolor ' +
+                'removeformat | help',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+                }}
+            />
+            {/* <TextareaAutosize 
                     onMouseEnter={handleMouseEnter} 
                     onMouseLeave={handleMouseOut} 
                     required minRows={3} 
                     style={{width: "98%", fontFamily: "Roboto"}} 
                     value={questionText} 
-                    onChange={(e) => handleChange(e.target.value)}/>
+                    onChange={(e) => handleChange(e.target.value)}/> */}
             <button type="button" 
-                    disabled={questionText === initialQuestionText} 
+                    disabled={questionText === initialQuestionText 
+                        ? true
+                        : fragments.join("_") === questionText
+                        ? true 
+                        : false} 
                     onClick={handleVerifyText}>
                     Verify Text
             </button> 
-            <ImageUpload setImages={setImages} images={images}/>
+            
             <div className="saveDeleteContainer">   
                 <button type="submit" 
                         onClick={handleSubmit}
                         className="submitButton"
                         disabled={fragments === initialFragments && images.toString() === initialImages?.toString()
                                     ? true 
-                                    : fragments.length > 0 ? 
-                                    false 
+                                    : fragments.join("_") !== questionText
+                                    ? true
+                                    : fragments.length > 0 
+                                    ? false 
                                     : true}>
                     Save Question
                 </button>

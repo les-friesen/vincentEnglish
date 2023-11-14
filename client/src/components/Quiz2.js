@@ -19,11 +19,11 @@ const Quiz2 = ( {questions} ) => {
     const [answers, setAnswers] = useState({})
     const [redos, setRedos] = useState([])
 
-    useEffect(() => {
-        if (currentQuestion < questions.length && questions[currentQuestion].type === "fillInTheBlank") {
-            inputRef.current.focus();
-        }
-        }, [currentQuestion]);
+    // useEffect(() => {
+    //     if (currentQuestion < questions.length && questions[currentQuestion].type === "fillInTheBlank") {
+    //         inputRef.current.focus();
+    //     }
+    //     }, [currentQuestion]);
     
     useEffect(() => {
         if (button === "Continue" && currentQuestion < questions.length)
@@ -39,14 +39,12 @@ const Quiz2 = ( {questions} ) => {
                         denom++
                     }
                 })
-                console.log(denom)
            
                 Object.keys(answers).forEach(key => {
                     if (answers[key].status === "correct") {
                         num++
                     } 
                 })
-                console.log(num)
 
                 return Math.round(num/denom*100)
             }
@@ -223,16 +221,16 @@ const Quiz2 = ( {questions} ) => {
 
 const Container = styled.div`
 
-
+font-family: Arial; 
 display: flex; 
 flex-direction: row; 
 justify-content: center;
 align-items: center;
 
-p {
-    margin-top: 5px;
-    margin-bottom: 5px;  
-}
+// p {
+//     margin-top: 5px;
+//     margin-bottom: 5px;  
+// }
 
 .quizContainer {
     margin-top: 5px; 
@@ -279,7 +277,7 @@ ol {
 }
 
 input, .composeText {
-    font-family: Open Sans; 
+    font-family: Arial; 
 }
 
 .correct {
@@ -299,7 +297,10 @@ input, .composeText {
     font-size: 0.9em; 
     display: inline-block;
     border-radius: 5px; 
-
+}
+.regular {
+    padding: 0px 3px 0px 3px; 
+    
 }
 .compose {
     background-color: purple;

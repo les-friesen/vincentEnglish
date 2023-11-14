@@ -1,14 +1,15 @@
 import styled from "styled-components";
+import React from "react";
 
 const FillInTheBlank = ( {question, button, inputRef, answers, currentQuestion, handleChange} ) => {
 
     return (
         <FillInTheBlankContainer> 
             <div className="questionContainer">
-            {question.fragments.map( (fragment, index) => {
+                {question.fragments.map( (fragment, index) => {
                 return (
-                    <span key={fragment}>
-                            <span> {fragment} </span>
+                    <React.Fragment key={index}>
+                            <span dangerouslySetInnerHTML={{__html: fragment}}></span>
                             { index < question.fragments.length - 1 && 
                                 <input 
                                     required
@@ -22,9 +23,9 @@ const FillInTheBlank = ( {question, button, inputRef, answers, currentQuestion, 
                                     ></input>
                                     
                             }
-                    </span>
+                    </React.Fragment>
                 )
-            }) 
+            })
             }
             </div>
         </FillInTheBlankContainer>
@@ -33,18 +34,28 @@ const FillInTheBlank = ( {question, button, inputRef, answers, currentQuestion, 
 
 const FillInTheBlankContainer = styled.div`
 line-height: 1.6; 
-margin: 10px 0px 10px 0px; 
+margin: 30px 0px 10px 0px;
+display: flex;
+align-items: center;  
+justify-content: center;
 
-.questionContainer {
+.questionSubContainer {
     display: flex;
     flex-direction: row;
+    align-items: center; 
     flex-wrap: wrap; 
-    justify-content: center; 
 }
 
-span {
+input {
     margin: 0px 3px 0px 3px; 
 }
+
+p {
+    margin: 0px; 
+    display: flex;
+    flex-direction: row; 
+}
+
 `
 
 export default FillInTheBlank

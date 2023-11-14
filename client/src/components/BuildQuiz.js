@@ -80,7 +80,7 @@ const BuildQuiz = () => {
     return (
         <Container>
             <div className="subContainer">
-                <p className="title">Create a new module</p>
+                <p className="title para">Create a new module</p>
                 <div className="newQuestionContainer">
                         <div className="introInputDiv">
                             <label>Title</label>
@@ -106,7 +106,7 @@ const BuildQuiz = () => {
                                     onChange={(e) => handleFormChange(e.target.id, e.target.value)}
                                     />
                         </div>
-                        <p className="text">Each ID must be unique</p>  
+                        <p className="para text">Each ID must be unique</p>  
                 </div>
                 { questions.length > 0 &&
                     questions.map((question, index) => {
@@ -179,7 +179,7 @@ const BuildQuiz = () => {
                 {
                     newQuestion &&
                     <div className="newQuestionContainer">
-                        <select name="type" id="type" onChange={(e) => handleSelectType(e.target.value)} style={{fontFamily: "Roboto"}}>
+                        <select name="type" id="type" onChange={(e) => handleSelectType(e.target.value)} style={{fontFamily: "Arial"}}>
                             <option value="select">Choose Type of Question</option>
                             <option value="fillInTheBlank">Fill in the Blank</option>
                             <option value="multipleChoice">Multiple Choice</option>
@@ -206,7 +206,7 @@ const BuildQuiz = () => {
 }
 
 const Container = styled.div`
-font-family: Roboto; 
+font-family: Arial; 
 width: 100vw;
 display: flex;
 
@@ -234,7 +234,7 @@ display: flex;
 
 input, textarea {
     border: solid black 1px; 
-    font-family: Roboto; 
+    font-family: Arial; 
 }
 
 .title {
@@ -259,7 +259,7 @@ input, textarea {
 }
 
 .example {
-    font-size: .7em;
+    font-size: .8em;
     font-style: italic; 
 }
 
@@ -271,13 +271,13 @@ input, textarea {
     line-height: 1;
 }
 
-p {
+.para {
     margin: 10px 0px 10px 0px; 
 }
 
 button {
     margin-top: 10px; 
-    font-family: Roboto; 
+    font-family: Arial; 
     background-color: lightyellow;
     border: solid grey 1px; 
     border-radius: 5px; 

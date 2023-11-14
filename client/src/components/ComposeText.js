@@ -1,4 +1,4 @@
-import { useEffect, useState} from "react";
+
 import styled from "styled-components";
 
 const ComposeText = ( {question, button, inputRef, answers, currentQuestion, handleChange} ) => {
@@ -7,8 +7,8 @@ const ComposeText = ( {question, button, inputRef, answers, currentQuestion, han
         <p className="question">
         {question.fragments.map( (fragment, index) => {
             return (
-                <span key={fragment}>
-                        <p> {fragment} </p>
+                <div className="questionSubContainer" key={index}>
+                        <p dangerouslySetInnerHTML={{__html: fragment}}></p>
                         { index < question.fragments.length && 
                             <textarea 
                                 required
@@ -19,10 +19,10 @@ const ComposeText = ( {question, button, inputRef, answers, currentQuestion, han
                                 className="composeText"
                                 id={`${currentQuestion +1 }-${index + 1}`}
                                 value={answers[`${currentQuestion + 1}-${index + 1}`] ? answers[`${currentQuestion + 1}-${index + 1}`].answer : ""}
-                                onChange={(e) => handleChange(e.target.id, e.target.value)}
-                                ></textarea>   
+                                onChange={(e) => handleChange(e.target.id, e.target.value)}>
+                            </textarea>   
                         }
-                </span>
+                </div>
             )
         }) 
         }

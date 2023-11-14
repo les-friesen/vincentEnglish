@@ -1,8 +1,9 @@
 import styled from "styled-components"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { TextareaAutosize } from '@mui/base/TextareaAutosize';
 import { FiTrash2 } from "react-icons/fi";
 import ImageUpload from "./ImageUpload";
+import { Editor } from "@tinymce/tinymce-react";
 
 const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQuestionType, initialQuestionText, initialFragments, initialCorrectAnswers, initialImages, questionIndex, handleMouseEnter, handleMouseOut}) => {
     
@@ -39,6 +40,14 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
 
     // const [addImages, setAddImages] = useState(false)
 
+    const editorRef = useRef(null);
+
+    // const log = () => {
+    //     if (editorRef.current) {
+    //       console.log(editorRef.current.getContent());
+    //     }
+    //   };
+
     useEffect(() => {
         if (!initialFragments) {
             setFragments([])
@@ -71,13 +80,14 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
         }
       }, [initialCorrectAnswers]);
 
-    const handleChange = (value) => {
-        setQuestionText(value)
-    }
+    // const handleChange = (value) => {
+    //     setQuestionText(value)
+    // }
 
     const handleVerifyText = () => {
-        setFragments((questionText.split("*").map(str => str.trim())))
-        let answers = [...correctAnswers].slice(0, questionText.split("*").length - 1)
+        // setFragments(questionText.split(/\s*_+\s*/g))
+        setFragments(questionText.split("_"))
+        let answers = [...correctAnswers].slice(0, questionText.split("_").length - 1)
         setCorrectAnswers(answers)
         }
     
@@ -155,27 +165,58 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
 
     return (
         <FillInTheBlankDiv> 
-            <p>Write the complete text in the box below. Add an asterisk, *, wherever you'd like to add a blank. Then click "Verify Text" to generate answer inputs for each blank. You can edit and re-verify the text at any time. <br></br>
-                <span className="example">Example: She (throw) * away the letter that she (write) * . </span></p>
-            <TextareaAutosize   onMouseEnter={handleMouseEnter} 
+            <ImageUpload setImages={setImages} images={images}/>
+            <p className="para"> Write the complete text in the box below. Add a single underscore, _, wherever you'd like to add a blank. Then click "Verify Text" to generate answer inputs for each blank. 
+                You can edit and re-verify the text at any time. For best results, stop any rich text settings (bold, italic, etc.) before adding a new blank (blanks should not be rich text).  
+            </p>
+            <p className="para example">
+                Example: She <strong>(throw)</strong> ____ away the letter that she <strong>(write)</strong> ____ .    
+            </p>
+            <Editor
+                apiKey='hggy776ed6votmeb2cy185ot2xr1ube1k8ol325vqtqk2lz7'
+                onInit={(evt, editor) => editorRef.current = editor}
+                initialValue={initialQuestionText}
+                value={questionText}
+                onEditorChange={(newValue, editor) => setQuestionText(newValue)}
+                init={{
+                height: 200,
+                forced_root_block : 'false',
+                menubar: 'false',
+                plugins: [
+                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                    'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | ' +
+                'bold italic forecolor backcolor ' +
+                'removeformat | help',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+                }}
+            />
+            {/* <TextareaAutosize   onMouseEnter={handleMouseEnter} 
                                 onMouseLeave={handleMouseOut} 
                                 required 
                                 minRows={3} 
                                 style={{width: "98%", fontFamily: "Roboto"}} 
-                                value={questionText} onChange={(e) => handleChange(e.target.value)}/>
+                                value={questionText} onChange={(e) => handleChange(e.target.value)}/> */}
                 <button     type="button" 
-                            disabled={questionText === initialQuestionText} 
+                            disabled={questionText === initialQuestionText 
+                                ? true 
+                                : fragments.join("_") === questionText 
+                                ? true
+                                : false } 
                             onClick={handleVerifyText}>
                         Verify Text
                 </button>
                     {
                         fragments.length > 0 &&
                         <>
-                        <p>Enter the correct answers for each blank below, one at a time, by entering text in the corresponding input and clicking "Add Answer". 
-                            Answers can be deleted, and each blank must have at least one answer. Answers are case and spelling sensitive (be careful of unwanted spaces!)</p>
+                            <hr></hr>
+                            <p className="para">Enter the correct answers for each blank below, one at a time, by entering text in the corresponding input and clicking "Add Answer". 
+                                Answers can be deleted, and each blank must have at least one answer. Answers are case and spelling sensitive (be careful of unwanted spaces!)</p>
                             {fragments.map((fragment,index) => {
                                 return (
-                                    <div key={index}>
+                                    <div key={fragment + index}>
                                     { 
                                     index !== fragments.length - 1 && 
                                         <div className="inputDiv" key={index}> 
@@ -183,7 +224,7 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
                                             <span>Answer(s) for blank #{index + 1}</span>
                                             <input 
                                                 id={index}
-                                                style={{fontFamily: "Roboto"}}
+                                                style={{fontFamily: "Arial"}}
                                                 value={addAnswers[index] ? addAnswers[index] : ""}
                                                 key={index}
                                                 onMouseEnter={handleMouseEnter}
@@ -193,7 +234,7 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
                                             <button className="addAnswer" type="button" onClick={() => handleAddAnswer(index)}>Add Answer</button>
                                             {correctAnswers[index]?.map((ans, ansIndex) => {
                                                 return(
-                                                    <div className="answer">
+                                                    <div key={ans + ansIndex} className="answer">
                                                         <span>{ans}</span>
                                                         <button type="button" onClick={() => deleteAnswer(index, ansIndex)} className="trash"><FiTrash2 size={12}/></button>
                                                     </div>
@@ -205,7 +246,7 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
                                 )
                             })
                             }
-                            <ImageUpload setImages={setImages} images={images}/>
+                            <hr></hr>
                             <div className="saveDeleteContainer">
                                 <button type="button" 
                                         className="submitButton"
@@ -215,6 +256,8 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
                                                 : correctAnswers.length < fragments.length - 1 
                                                 ? true 
                                                 : !correctAnswers.every(ans => ans.length > 0)
+                                                ? true
+                                                : fragments.join("_") !== questionText
                                                 ? true
                                                 : false}>
                                         Save Question

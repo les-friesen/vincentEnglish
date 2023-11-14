@@ -4,9 +4,9 @@ const MultipleChoice = ( {question, button, answers, currentQuestion, handleChan
 
     return (
         <MultipleChoiceContainer>
-            <p className="mcQuestion">
-                {question.question}
-            </p>
+            <div className="mcQuestion" dangerouslySetInnerHTML={{__html: question.question}}>
+                
+            </div>
             <ol type="A">
                 {
                 question.options.map((option) => {
@@ -20,7 +20,7 @@ const MultipleChoice = ( {question, button, answers, currentQuestion, handleChan
                                     checked={answers[`${currentQuestion + 1}-1`] && answers[`${currentQuestion + 1}-1`].answer === option ? true : false}
                                     value={option}/>
                             <label htmlFor="choice" 
-                                    className={answers[`${currentQuestion + 1}-1`] && answers[`${currentQuestion + 1}-1`].answer === option ? answers[`${currentQuestion + 1}-1`].status : "regular"}
+                                    className={answers[`${currentQuestion + 1}-1`] && answers[`${currentQuestion + 1}-1`].answer === option ? answers[`${currentQuestion + 1}-1`].status : ""}
                                     >{option}</label><br></br>
                         </li>
                     )}
@@ -33,7 +33,11 @@ const MultipleChoice = ( {question, button, answers, currentQuestion, handleChan
 
 const MultipleChoiceContainer = styled.div`
 line-height: 1.6; 
-margin: 10px 0px 10px 0px; 
+margin: 30px 0px 10px 0px; 
+
+.mcQuestion {
+    margin-bottom: 10px; 
+}
 
 
 `;

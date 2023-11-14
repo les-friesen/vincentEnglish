@@ -83,12 +83,12 @@ const ImageUpload = ( {images, setImages} ) => {
     return(
         <Container>
             <hr></hr>
-            <p>
+            <p className="para">
                 (Optional) Upload up to four images in .png, .jpg or .jpeg format. Images can be removed or reordered via drag and drop.
             </p>
             <form onSubmit={handleSubmit}>
                 <div className="abcd">
-                    <p>
+                    <p className="para">
                         <input
                             className="file"
                             type="file"
@@ -101,7 +101,7 @@ const ImageUpload = ( {images, setImages} ) => {
                             disabled={images.length === 4}
                         />
                     </p>
-                    <p>
+                    <p className="para">
                         { isLoading 
                             ? <CircularProgress size={14} />
                             : <button 
@@ -171,7 +171,7 @@ const Container = styled.div`
     align-items: center;  
     
     border: solid grey 1px; 
-    margin-right: 10px; 
+    margin: 0px 10px 10px 0px; 
     background-color: pink;
     padding: 0px 10px 10px 10px;   
 }

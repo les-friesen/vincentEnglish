@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react"
 import { TextareaAutosize } from '@mui/base/TextareaAutosize';
 import { FiTrash2 } from 'react-icons/fi'; 
 import ImageUpload from "./ImageUpload";
+import { Editor } from '@tinymce/tinymce-react'
 
 const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQuestionType, initialQuestionText, initialCorrectAnswers, initialOptions, initialImages, questionIndex, handleMouseEnter, handleMouseOut}) => {
     
@@ -31,6 +32,14 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
     //     }
     // });
     const [images, setImages] = useState([])
+
+    const editorRef = useRef(null);
+
+    const log = () => {
+        if (editorRef.current) {
+          console.log(editorRef.current.getContent());
+        }
+      };
 
     useEffect(() => {
         if (!initialImages) {
@@ -146,15 +155,39 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
 
     return (
         <MultipleChoiceDiv> 
-            <p>Write a question in the text box below.</p>
-            <TextareaAutosize   required 
+            <ImageUpload setImages={setImages} images={images}/>
+            <p className="para">Write a question in the text box below.</p>
+            <Editor
+                apiKey='hggy776ed6votmeb2cy185ot2xr1ube1k8ol325vqtqk2lz7'
+                onInit={(evt, editor) => editorRef.current = editor}
+                initialValue={initialQuestionText}
+                value={questionText}
+                onEditorChange={(newValue, editor) => setQuestionText(newValue)}
+                init={{
+                height: 200,
+                menubar: "false", 
+                forced_root_block : 'false',
+                plugins: [
+                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                    'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | ' +
+                'bold italic forecolor backcolor ' +
+                'removeformat | help',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+                
+                }}
+            />
+            {/* <button onClick={log}>Log editor content</button> */}
+            {/* <TextareaAutosize   required 
                                 onMouseEnter={handleMouseEnter} 
                                 onMouseLeave={handleMouseOut} 
                                 minRows={3} 
                                 style={{width: "98%", fontFamily: "Roboto"}} 
                                 value={questionText} 
-                                onChange={(e) => handleChange(e.target.value)}/>
-                <p> Add between 2-6 options, one at a time, by entering text in the input below and clicking "Add Option". Options can be reordered via drag and drop or deleted. Select the correct answer before saving.</p> 
+                                onChange={(e) => handleChange(e.target.value)}/> */}
+                <p className="para"> Add between 2-6 options, one at a time, by entering text in the input below and clicking "Add Option". Options can be reordered via drag and drop or deleted. Select the correct answer before saving.</p> 
                 <input  onMouseEnter={handleMouseEnter} 
                         onMouseLeave={handleMouseOut} 
                         type="text" 
@@ -163,7 +196,7 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
                         onChange={handleOptionChange}>
                 </input>
                 <button type="button" disabled={options?.length >= 6 ? true : false} onClick={handleAddOption}>Add Option</button>
-                <p className="options-title"> Options ({options.length}/6) </p>
+                <p className="para options-title"> Options ({options.length}/6) </p>
                 <ol>
                     { options?.map((option, index) => {
                         return (
@@ -195,7 +228,6 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
                         )
                     })}
                 </ol>
-                <ImageUpload setImages={setImages} images={images}/>
                 <div className="saveDeleteContainer">
                     <button type="button" 
                             onClick={handleSubmit}
@@ -226,6 +258,8 @@ ol {
     list-style-type: upper-alpha;
     margin-left: 10px;  
     list-style-position: inside;
+   
+    
 }
 
 li {
@@ -233,7 +267,9 @@ li {
     margin-bottom: 5px; 
     display: list-item; 
     min-width: 120px; 
+    align-self: center; 
 }
+
 
 .choice { 
     margin-top: 0px; 
@@ -245,12 +281,16 @@ li {
     border-radius: 5px; 
     margin-left: 5px; 
     padding-left: 5px; 
+    height: 20px;
+    line-height: 0px; 
+
 }
 
 .trash {
     background-color: transparent;
     border: none; 
     margin-top: 0px; 
+    
 }
 
 .optionContainer {
