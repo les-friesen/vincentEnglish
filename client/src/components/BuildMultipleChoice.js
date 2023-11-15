@@ -235,7 +235,7 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
                             disabled={options === initialOptions && 
                             correctAnswers === initialCorrectAnswers && 
                             questionText === initialQuestionText &&
-                            images.toString() === initialImages?.toString()
+                            JSON.stringify(images) === JSON.stringify(initialImages)
                             ? true 
                             : options.length >= 2 ? 
                             false 

@@ -10,7 +10,7 @@ const Result = ( {questions, answers} ) => {
                     questions.map( (question,index) => {
                         return (
                             <div className="question" key={index}>
-                                 <span>{index+1}. </span>  
+                                <span>{index+1}. </span>  
                                     {question.type === "fillInTheBlank" &&
                                         question.fragments.map((fragment, fragIndex) => {
                                             return (

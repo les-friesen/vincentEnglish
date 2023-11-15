@@ -147,7 +147,7 @@ const BuildComposeText = ({questions, setQuestions, setNewQuestion, setNewQuesti
                 <button type="submit" 
                         onClick={handleSubmit}
                         className="submitButton"
-                        disabled={fragments === initialFragments && images.toString() === initialImages?.toString()
+                        disabled={fragments === initialFragments && JSON.stringify(images) === JSON.stringify(initialImages)
                                     ? true 
                                     : fragments.join("_") !== questionText
                                     ? true

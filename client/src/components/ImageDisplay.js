@@ -8,11 +8,9 @@ const ImageDisplay = ( {images} ) => {
                 <div className="imageContainer">
                     {   images.map((image, index) => {
                             return (
-                                
-                                    <img 
-                                        src={image}
+                                    <img
+                                        src={image.url}
                                         alt={`Upload number ${index + 1}`}/>
-                            
                             )
                         })
                     }

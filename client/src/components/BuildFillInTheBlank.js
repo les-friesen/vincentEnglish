@@ -130,6 +130,8 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
     }
 
     const deleteQuestion = () => {
+
+        
         let newArray = [...questions]
         newArray.splice(questionIndex, 1)
         setQuestions(newArray)
@@ -251,7 +253,7 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
                                 <button type="button" 
                                         className="submitButton"
                                         onClick={handleSubmit}
-                                        disabled={correctAnswers.toString() === initialCorrectAnswers?.toString() && questionText === initialQuestionText && images.toString() === initialImages?.toString()
+                                        disabled={correctAnswers.toString() === initialCorrectAnswers?.toString() && questionText === initialQuestionText && JSON.stringify(images) === JSON.stringify(initialImages)
                                                 ? true 
                                                 : correctAnswers.length < fragments.length - 1 
                                                 ? true 
