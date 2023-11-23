@@ -4,7 +4,7 @@ import styled from "styled-components";
 const ComposeText = ( {question, button, inputRef, answers, currentQuestion, handleChange} ) => {
 
     return (
-        <p className="question">
+        <div className="question">
         {question.fragments.map( (fragment, index) => {
             return (
                 <div className="questionSubContainer" key={index}>
@@ -26,7 +26,7 @@ const ComposeText = ( {question, button, inputRef, answers, currentQuestion, han
             )
         }) 
         }
-    </p>
+    </div>
     )
 }
 

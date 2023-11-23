@@ -1,26 +1,59 @@
 import styled from "styled-components";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
+import { useParams, useNavigate } from "react-router-dom"
 import BuildFillInTheBlank from "./BuildFillInTheBlank";
 import BuildComposeText from "./BuildComposeText";
 import BuildMultipleChoice from "./BuildMultipleChoice";
 import Quiz2 from "./Quiz2";
+import { ReloadContext } from "./ReloadContext";
 
 const BuildQuiz = () => {
 
+    const { quizId } = useParams();
+    const navigate = useNavigate(); 
     const [questions, setQuestions] = useState([]);
-    const [formData, setFormData] = useState({});
+    const [formData, setFormData] = useState({title: "", subtitle: "", _id: ""});
     const [newQuestion, setNewQuestion] = useState(false);
     const [newQuestionType, setNewQuestionType] = useState("select");
     const [preview, setPreview] = useState(false);
     const [isDragging, setIsDragging] = useState(); 
     const [isDraggable, setIsDraggable] = useState(true); 
+    const [hasImages, setHasImages] = useState(false); 
+
+    const { reload, setReload, setIsLoading } = useContext(ReloadContext); 
+    
+    
+    const getQuiz = async () => {
+        setIsLoading("loading");
+        try {
+            // const token = await getAccessTokenSilently();
+            const response = await fetch(`/api/getQuizById/${quizId}`, 
+                // { headers : {
+                //     "authorization" : `Bearer ${token}`
+                // }}
+                )
+            const data = await response.json();
+            if (data.status !== 200) {
+                console.log(data)
+                // navigate("/");
+                setIsLoading("");
+            }
+            else {
+                setFormData({title: data.data.title, subtitle: data.data.subtitle, _id: data.data._id });
+                setQuestions(data.data.questions)
+                setIsLoading("");
+            } 
+        } catch (error) {
+            console.log(error);
+            // navigate("/");
+            setIsLoading("");
+        }
+    };
     
     useEffect(() => {
-        setFormData({
-            ...formData,
-            questions: questions
-        })
-    }, [questions]);
+        getQuiz(); 
+        console.log("Rerender triggered reload")
+    }, [reload])
 
     const handlePreview = () => {
         setPreview(!preview)
@@ -29,15 +62,18 @@ const BuildQuiz = () => {
     const handleFormChange = (id, value) => {
         setFormData({
             ...formData,
-            [id] : value,
-            questions: questions
+            [id] : value
         }) 
     }
 
     const handleAddNewQuestion = () => {
-        setNewQuestion(!newQuestion)
-        if (newQuestion === true) {
+        if (newQuestion && hasImages) {
+            alert("Delete all images before cancelling!")
+        } else if (newQuestion) {
             setNewQuestionType("select");
+            setNewQuestion(!newQuestion)
+        } else {
+            setNewQuestion(!newQuestion)
         }
     }
 
@@ -67,6 +103,7 @@ const BuildQuiz = () => {
     };
 
     const dropQuestion = (e) => {
+        
         const copyQuestions = [...questions];
         const dragQuestionContent = copyQuestions[dragQuestion.current];
         copyQuestions.splice(dragQuestion.current, 1);
@@ -74,13 +111,39 @@ const BuildQuiz = () => {
         dragQuestion.current = null;
         dragOverQuestion.current = null;
         setQuestions(copyQuestions);
+       
+        updateQuiz({questions: copyQuestions})
+        
         setIsDragging(); 
     };
+
+    //Function for adding the expense when hitting the "add expense" button. 
+    const updateQuiz = async (theData) => {
+        setIsLoading("loading");
+        try {
+            // const token = await getAccessTokenSilently();
+            const response = await fetch(`/api/updateQuiz/${quizId}`, {
+                method: "PATCH",
+                headers : {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                    // "authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(theData)
+                })
+            const data = await response.json();
+                console.log(data)
+                setIsLoading("")
+                setReload(data)
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     return (
         <Container>
             <div className="subContainer">
-                <p className="title para">Create a new module</p>
+                <p className="title para">Edit Module</p>
                 <div className="newQuestionContainer">
                         <div className="introInputDiv">
                             <label>Title</label>
@@ -99,16 +162,25 @@ const BuildQuiz = () => {
                                     />
                         </div>
                         <div className="introInputDiv">
-                            <label>ID/URL</label>
+                            <label>ID</label>
                             <input  type="text"
                                     id="_id"
+                                    disabled
                                     value={formData._id}
                                     onChange={(e) => handleFormChange(e.target.id, e.target.value)}
                                     />
                         </div>
-                        <p className="para text">Each ID must be unique</p>  
+                        <button>Update Title/Subtitle</button>
                 </div>
-                { questions.length > 0 &&
+                <button type="button" 
+                        disabled={questions.length < 1 || newQuestion} 
+                        onClick={handlePreview}>
+                            {preview ? "Cancel Preview" : "Preview Quiz"}
+                </button>
+                { preview &&    
+                    <Quiz2 questions={questions}/>
+                }
+                { questions.length > 0 && !preview && 
                     questions.map((question, index) => {
                         return (
                         <div    className={`newQuestionContainer ${isDragging === index ? "isDragging" : ""}`}
@@ -124,6 +196,10 @@ const BuildQuiz = () => {
                                 <span className="heading">Fill In The Blank</span>
                                 <BuildFillInTheBlank 
                                         questions={questions} 
+                                        quizId={quizId}
+                                        updateQuiz={updateQuiz}
+                                        // hasImages={hasImages}
+                                        // setHasImages={setHasImages}
                                         setQuestions={setQuestions} 
                                         setNewQuestion={setNewQuestion} 
                                         setNewQuestionType={setNewQuestionType}
@@ -134,6 +210,7 @@ const BuildQuiz = () => {
                                         questionIndex={index}
                                         handleMouseEnter={handleMouseEnter}
                                         handleMouseOut={handleMouseOut}
+                                        
                                         />
                                 </>
                             }
@@ -142,6 +219,10 @@ const BuildQuiz = () => {
                                 <span className="heading">Compose Text</span>
                                 <BuildComposeText 
                                         questions={questions} 
+                                        // hasImages={hasImages}
+                                        // setHasImages={setHasImages}
+                                        quizId={quizId}
+                                        updateQuiz={updateQuiz}
                                         setQuestions={setQuestions} 
                                         setNewQuestion={setNewQuestion} 
                                         setNewQuestionType={setNewQuestionType}
@@ -158,6 +239,10 @@ const BuildQuiz = () => {
                                 <span className="heading">Multiple Choice</span>
                                 <BuildMultipleChoice 
                                         questions={questions} 
+                                        quizId={quizId}
+                                        updateQuiz={updateQuiz}
+                                        // hasImages={hasImages}
+                                        // setHasImages={setHasImages}
                                         setQuestions={setQuestions} 
                                         setNewQuestion={setNewQuestion} 
                                         setNewQuestionType={setNewQuestionType}
@@ -175,31 +260,54 @@ const BuildQuiz = () => {
                         )
                     })
                 }
+                {!preview && 
                 <button onClick={handleAddNewQuestion}>{newQuestion ? "Cancel" : "Add New Question"}</button>
+                }
                 {
                     newQuestion &&
                     <div className="newQuestionContainer">
-                        <select name="type" id="type" onChange={(e) => handleSelectType(e.target.value)} style={{fontFamily: "Arial"}}>
+                        <select name="type" disabled={hasImages ? true : false} id="type" onChange={(e) => handleSelectType(e.target.value)} style={{fontFamily: "Arial"}}>
                             <option value="select">Choose Type of Question</option>
                             <option value="fillInTheBlank">Fill in the Blank</option>
                             <option value="multipleChoice">Multiple Choice</option>
                             <option value="composeText">Compose Text</option>
                         </select>
                         { newQuestionType === "fillInTheBlank" &&
-                            <BuildFillInTheBlank questions={questions} setQuestions={setQuestions} setNewQuestion={setNewQuestion} setNewQuestionType={setNewQuestionType}/>
+                            <BuildFillInTheBlank 
+                                quizId={quizId}
+                                updateQuiz={updateQuiz}
+                                questions={questions} 
+                                hasImages={hasImages}
+                                setHasImages={setHasImages}
+                                setQuestions={setQuestions} 
+                                setNewQuestion={setNewQuestion} 
+                                setNewQuestionType={setNewQuestionType}/>
                         }
                         { newQuestionType === "composeText" &&
-                            <BuildComposeText questions={questions} setQuestions={setQuestions} setNewQuestion={setNewQuestion} setNewQuestionType={setNewQuestionType}/> 
+                            <BuildComposeText 
+                                quizId={quizId}
+                                updateQuiz={updateQuiz}
+                                questions={questions} 
+                                hasImages={hasImages}
+                                setHasImages={setHasImages}
+                                setQuestions={setQuestions} 
+                                setNewQuestion={setNewQuestion} 
+                                setNewQuestionType={setNewQuestionType}/> 
                         }
                         { newQuestionType === "multipleChoice" &&
-                            <BuildMultipleChoice questions={questions} setQuestions={setQuestions} setNewQuestion={setNewQuestion} setNewQuestionType={setNewQuestionType}/>
+                            <BuildMultipleChoice 
+                                quizId={quizId}
+                                questions={questions} 
+                                updateQuiz={updateQuiz}
+                                setQuestions={setQuestions}
+                                hasImages={hasImages}
+                                setHasImages={setHasImages} 
+                                setNewQuestion={setNewQuestion} 
+                                setNewQuestionType={setNewQuestionType}/>
                         }
                     </div>
                 }
-                <button type="button" onClick={handlePreview}>Preview Quiz</button>
-                { preview &&    
-                    <Quiz2 questions={questions}/>
-                }
+                
             </div> 
         </Container>
     )

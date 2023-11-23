@@ -1,25 +1,28 @@
-import Assignment from "./Assignment";
-import Quiz from "./Quiz";
+
 import styled from "styled-components";
 import { useState } from "react";
-import { assignment1 } from "../data";
-import { assignment2 } from "../data";
+import AllQuizzes from "./AllQuizzes";
 import Quiz2 from "./Quiz2";
 import BuildQuiz from "./BuildQuiz";
 import GlobalStyle from "./GlobalStyles";
+import { BrowserRouter, Routes, Route } from "react-router-dom"; 
 
 function App() {
 
   return (
-    <>
+    <BrowserRouter>
       <GlobalStyle/>
-      <BuildQuiz/>
+      {/* <BuildQuiz/> */}
       {/* <Container>
         <p className="title">{assignment2.title}</p>
         <p className="subtitle">{assignment2.subtitle}</p>
         <Quiz2 questions={assignment2.questions} />
       </Container> */}
-    </>
+      <Routes>
+        <Route path="/admin/quizzes" element={<AllQuizzes />} />
+        <Route path="/admin/edit/:quizId" element={<BuildQuiz />} /> 
+      </Routes>
+    </BrowserRouter>
   );
 }
 

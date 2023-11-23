@@ -3,7 +3,7 @@ const express = require('express');
 const morgan = require('morgan'); 
 var cors = require('cors');
 
-const { uploadImage, deleteImage } = require('./handlers')
+const { uploadImage, deleteImage, addQuiz, getQuizzes, getQuizById, updateQuiz } = require('./handlers')
 
 const app = express(); 
 
@@ -14,6 +14,10 @@ app.use(cors());
 
 app.post('/api/uploadImage', uploadImage)
     .delete('/api/deleteImage/:id', deleteImage)
+    .post('/api/addQuiz', addQuiz)
+    .get('/api/getQuizzes', getQuizzes)
+    .get('/api/getQuizById/:quizId', getQuizById)
+    .patch('/api/updateQuiz/:quizId', updateQuiz)
     .get("*", (req, res) => {
     res.status(404).json({
     status: 404,

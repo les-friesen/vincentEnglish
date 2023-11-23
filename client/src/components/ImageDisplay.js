@@ -9,6 +9,7 @@ const ImageDisplay = ( {images} ) => {
                     {   images.map((image, index) => {
                             return (
                                     <img
+                                        key={index}
                                         src={image.url}
                                         alt={`Upload number ${index + 1}`}/>
                             )

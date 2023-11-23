@@ -1,32 +1,18 @@
 import styled from "styled-components"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useContext } from "react"
 import { TextareaAutosize } from '@mui/base/TextareaAutosize';
 import { FiTrash2 } from "react-icons/fi";
 import ImageUpload from "./ImageUpload";
 import { Editor } from "@tinymce/tinymce-react";
+import { ReloadContext } from "./ReloadContext";
 
-const BuildComposeText = ({questions, setQuestions, setNewQuestion, setNewQuestionType, initialFragments, initialQuestionText, initialImages, questionIndex, handleMouseEnter, handleMouseOut}) => {
+
+const BuildComposeText = ({questions, setQuestions, quizId, updateQuiz, hasImages, setHasImages, setNewQuestion, setNewQuestionType, initialFragments, initialQuestionText, initialImages, questionIndex, handleMouseEnter, handleMouseOut}) => {
     
+    const { reload, setReload, setIsLoading } = useContext(ReloadContext); 
     const [fragments, setFragments] = useState([])
-    //     () => {
-    //     if (!initialFragments) {
-    //         return []
-    //     } else {
-    //         return initialFragments
-    //     }
-    // });
-
     const [questionText, setQuestionText] = useState("")
-    //     () => {
-    //     if (!initialQuestionText) {
-    //         return ""
-    //     } else {
-    //         return initialQuestionText
-    //     }
-    // }
-    // );
     const [images, setImages] = useState([])
-
     const editorRef = useRef(null);
 
     useEffect(() => {
@@ -62,9 +48,14 @@ const BuildComposeText = ({questions, setQuestions, setNewQuestion, setNewQuesti
     }
 
     const deleteQuestion = () => {
+        if (questionIndex >= 0 && JSON.stringify(images) !== JSON.stringify(initialImages)) {
+            alert("Delete newly added images (or save changes) before deleting question")
+        } else {
         let newArray = [...questions]
         newArray.splice(questionIndex, 1)
-        setQuestions(newArray)
+        updateQuiz({questions: newArray})
+        // setQuestions(newArray)
+        }
     }
 
     const handleSubmit = (e) => {
@@ -78,25 +69,50 @@ const BuildComposeText = ({questions, setQuestions, setNewQuestion, setNewQuesti
                     correctAnswers: [],
                     images: images
             }
-            setQuestions(editedQuestions)
+            updateQuiz({questions: editedQuestions})
+            // setQuestions(editedQuestions)
         } else {
-            setQuestions(
-                [...questions, {
-                    type: "composeText",
-                    fragments: fragments,
-                    questionText: questionText, 
-                    correctAnswers: [],
-                    images: images
-                }]
-            )
+            const editedQuestions = [...questions, {
+                type: "composeText",
+                fragments: fragments,
+                questionText: questionText, 
+                correctAnswers: [],
+                images: images
+            }]
+            updateQuiz({questions: editedQuestions})
+            // setQuestions(editedQuestions)
             setNewQuestion(false)
             setNewQuestionType("select")
+            setHasImages(false)
+            console.log("just set has images to false")
         }
     }
 
+    // const updateQuiz = async (theData) => {
+    //     setIsLoading("loading");
+    //     try {
+    //         // const token = await getAccessTokenSilently();
+    //         const response = await fetch(`/api/updateQuiz/${quizId}`, {
+    //             method: "PATCH",
+    //             headers : {
+    //                 "Accept": "application/json",
+    //                 "Content-Type": "application/json"
+    //                 // "authorization": `Bearer ${token}`
+    //             },
+    //             body: JSON.stringify(theData)
+    //             })
+    //         const data = await response.json();
+    //             console.log(data)
+    //             setIsLoading("")
+    //             setReload(data)
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // }
+
     return (
         <ComposeTextDiv> 
-            <ImageUpload setImages={setImages} images={images}/>
+            <ImageUpload questionIndex={questionIndex} setImages={setImages} images={images} hasImages={hasImages} setHasImages={setHasImages}/>
             <p className="para">Write one or more text prompts in the box below. For multiple prompts, add an underscore, _, to separate them. Click "Verify Text" before saving. 
                 For best results, stop any rich text settings (bold, italic, etc.) before adding a new blank (blanks should not be rich text).
                 <br></br> 
@@ -158,7 +174,7 @@ const BuildComposeText = ({questions, setQuestions, setNewQuestion, setNewQuesti
                 </button>
                 <button className="trash" 
                         onClick={deleteQuestion}
-                        disabled={questionIndex >= 0 ? false : true} 
+                        disabled={questionIndex >= 0 ? false :  true} 
                         type="button"> 
                     <FiTrash2 size={15}/>
                 </button>

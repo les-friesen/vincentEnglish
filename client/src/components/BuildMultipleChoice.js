@@ -5,41 +5,13 @@ import { FiTrash2 } from 'react-icons/fi';
 import ImageUpload from "./ImageUpload";
 import { Editor } from '@tinymce/tinymce-react'
 
-const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQuestionType, initialQuestionText, initialCorrectAnswers, initialOptions, initialImages, questionIndex, handleMouseEnter, handleMouseOut}) => {
+const BuildMultipleChoice = ({questions, setQuestions, quizId, updateQuiz, hasImages, setHasImages, setNewQuestion, setNewQuestionType, initialQuestionText, initialCorrectAnswers, initialOptions, initialImages, questionIndex, handleMouseEnter, handleMouseOut}) => {
     
     const [options, setOptions] = useState([])
-    //     () => {
-    //     if (!initialOptions) {
-    //         return []
-    //     } else {
-    //         return initialOptions
-    //     }
-    // });
     const [questionText, setQuestionText] = useState("")
-    //     () => {
-    //     if (!initialQuestionText) {
-    //         return ""
-    //     } else {
-    //         return initialQuestionText
-    //     }
-    // })
-    const [correctAnswers, setCorrectAnswers] = useState([])
-    //     () => {
-    //     if (!initialCorrectAnswers) {
-    //         return ""
-    //     } else {
-    //         return initialCorrectAnswers
-    //     }
-    // });
+    const [correctAnswers, setCorrectAnswers] = useState("")
     const [images, setImages] = useState([])
-
     const editorRef = useRef(null);
-
-    const log = () => {
-        if (editorRef.current) {
-          console.log(editorRef.current.getContent());
-        }
-      };
 
     useEffect(() => {
         if (!initialImages) {
@@ -67,26 +39,28 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
 
     useEffect(() => {
         if (!initialCorrectAnswers) {
-            setCorrectAnswers([])
+            setCorrectAnswers("")
         } else {
             setCorrectAnswers(initialCorrectAnswers)
         }
-      }, [initialCorrectAnswers]);
+    }, [initialCorrectAnswers]);
 
     const [addOption, setAddOption] = useState("");
-
     const dragOption = useRef();
     const dragOverOption = useRef();
     
     const dragOptionStart = (e, position) => {
+        e.stopPropagation();
         dragOption.current = position;  
     };
-     
+
     const dragOptionEnter = (e, position) => {
+        e.stopPropagation();
         dragOverOption.current = position;  
     };
 
     const drop = (e) => {
+        e.stopPropagation();
         const copyOptions = [...options];
         const dragOptionContent = copyOptions[dragOption.current];
         copyOptions.splice(dragOption.current, 1);
@@ -96,9 +70,9 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
         setOptions(copyOptions);
     };
     
-    const handleChange = (value) => {
-        setQuestionText(value)
-    }
+    // const handleChange = (value) => {
+    //     setQuestionText(value)
+    // }
 
     const handleOptionChange = (e) => {
         setAddOption(e.target.value)
@@ -115,15 +89,23 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
     }
 
     const deleteOption = (index) => {
+        if (options.length === 1 || options[index] === correctAnswers) {
+            setCorrectAnswers("")
+        }
         let newArray = [...options]
         newArray.splice(index, 1)
         setOptions(newArray)
     }
 
     const deleteQuestion = () => {
+        if (questionIndex >= 0 && JSON.stringify(images) !== JSON.stringify(initialImages)) {
+            alert("Delete newly added images (or save changes) before deleting question")
+        } else {
         let newArray = [...questions]
         newArray.splice(questionIndex, 1)
-        setQuestions(newArray)
+        // setQuestions(newArray)
+        updateQuiz({questions: newArray})
+        }
     }
 
     const handleSubmit = (e) => {
@@ -137,9 +119,10 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
                     correctAnswers: correctAnswers,
                     images: images
                 }
-                setQuestions(editedQuestions)
+                updateQuiz({questions: editedQuestions})
+                // setQuestions(editedQuestions)
             } else {
-            setQuestions(
+            const editedQuestions = 
                 [...questions, {
                     type: "multipleChoice",
                     question: questionText,
@@ -147,15 +130,17 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
                     correctAnswers: correctAnswers,
                     images: images
                 }]
-            )
+            updateQuiz({questions: editedQuestions})
             setNewQuestion(false)
             setNewQuestionType("select")
+            setHasImages(false)
+            console.log("just set has images to false")
             }
     }
 
     return (
         <MultipleChoiceDiv> 
-            <ImageUpload setImages={setImages} images={images}/>
+            <ImageUpload questionIndex={questionIndex} setImages={setImages} images={images} hasImages={hasImages} setHasImages={setHasImages}/>
             <p className="para">Write a question in the text box below.</p>
             <Editor
                 apiKey='hggy776ed6votmeb2cy185ot2xr1ube1k8ol325vqtqk2lz7'
@@ -237,8 +222,8 @@ const BuildMultipleChoice = ({questions, setQuestions, setNewQuestion, setNewQue
                             questionText === initialQuestionText &&
                             JSON.stringify(images) === JSON.stringify(initialImages)
                             ? true 
-                            : options.length >= 2 ? 
-                            false 
+                            : questionText.length > 0 && options.length >= 2 && correctAnswers.length > 0
+                            ? false 
                             : true}>
                             Save Question
                     </button>
@@ -258,8 +243,6 @@ ol {
     list-style-type: upper-alpha;
     margin-left: 10px;  
     list-style-position: inside;
-   
-    
 }
 
 li {
@@ -269,7 +252,6 @@ li {
     min-width: 120px; 
     align-self: center; 
 }
-
 
 .choice { 
     margin-top: 0px; 
@@ -283,7 +265,6 @@ li {
     padding-left: 5px; 
     height: 20px;
     line-height: 0px; 
-
 }
 
 .trash {
@@ -297,7 +278,6 @@ li {
     display: flex; 
     flex-direction: row; 
     align-items: center;
-    
 }
 
 .addOption {
@@ -318,7 +298,6 @@ li {
     align-items: center; 
     margin-top: 10px; 
 }
-
 
 `
 

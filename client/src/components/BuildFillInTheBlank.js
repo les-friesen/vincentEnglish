@@ -5,48 +5,14 @@ import { FiTrash2 } from "react-icons/fi";
 import ImageUpload from "./ImageUpload";
 import { Editor } from "@tinymce/tinymce-react";
 
-const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQuestionType, initialQuestionText, initialFragments, initialCorrectAnswers, initialImages, questionIndex, handleMouseEnter, handleMouseOut}) => {
+const BuildFillInTheBlank = ({questions, setQuestions, quizId, updateQuiz, setNewQuestion, setNewQuestionType, hasImages, setHasImages, initialQuestionText, initialFragments, initialCorrectAnswers, initialImages, questionIndex, handleMouseEnter, handleMouseOut}) => {
     
     const [fragments, setFragments] = useState([])
-        // () => {
-    //     if (!initialFragments) {
-    //         return []
-    //     } else {
-    //         return initialFragments
-    //     }
-    // });
-
     const [questionText, setQuestionText] = useState("")
-    //     () => {
-    //     if (!initialQuestionText) {
-    //         return ""
-    //     } else {
-    //         return initialQuestionText
-    //     }
-    // });
-
     const [correctAnswers, setCorrectAnswers] = useState([])
-    //     () => {
-    //     if (!initialCorrectAnswers) {
-    //         return []
-    //     } else {
-    //         return initialCorrectAnswers
-    //     }
-    // });
-
     const [images, setImages] = useState([])
-
     const [addAnswers, setAddAnswers] = useState([])
-
-    // const [addImages, setAddImages] = useState(false)
-
     const editorRef = useRef(null);
-
-    // const log = () => {
-    //     if (editorRef.current) {
-    //       console.log(editorRef.current.getContent());
-    //     }
-    //   };
 
     useEffect(() => {
         if (!initialFragments) {
@@ -80,16 +46,21 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
         }
       }, [initialCorrectAnswers]);
 
-    // const handleChange = (value) => {
-    //     setQuestionText(value)
-    // }
+    const handleChange = (value) => {
+        setQuestionText(value)
+    }
 
     const handleVerifyText = () => {
+
+        if (!questionText.includes("_")) {
+            alert("Include at least one blank in your question")
+        } else {
         // setFragments(questionText.split(/\s*_+\s*/g))
         setFragments(questionText.split("_"))
         let answers = [...correctAnswers].slice(0, questionText.split("_").length - 1)
         setCorrectAnswers(answers)
         }
+    }
     
     // const handleAnswerChange = (id, value) => {
     //     let answers = [...correctAnswers]
@@ -108,38 +79,41 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
     }
 
     const handleAddAnswer = (index) => {
-        let correct = [...correctAnswers]
-        if (correct[index]) {
-            correct[index] = [...correctAnswers[index], addAnswers[index]]
-        } else {
-            correct[index] = [addAnswers[index]]
+        if (addAnswers[index] !== "") {
+            let correct = [...correctAnswers]
+            if (correct[index]) {
+                correct[index] = [...correctAnswers[index], addAnswers[index]]
+            } else {
+                correct[index] = [addAnswers[index]]
+            }
+            setCorrectAnswers(correct)
+            let add = [...addAnswers]
+            add[index] = ""
+            setAddAnswers(add) 
         }
-        setCorrectAnswers(correct)
-        let add = [...addAnswers]
-        add[index] = ""
-        setAddAnswers(add) 
     }
 
     const deleteAnswer = (index, ansIndex) => {
         let newArray = [...correctAnswers[index]]
         newArray.splice(ansIndex, 1)
-
         let newAnswers = [...correctAnswers]
         newAnswers[index] = newArray
         setCorrectAnswers(newAnswers)
     }
 
     const deleteQuestion = () => {
-
-        
+        if (questionIndex >= 0 && JSON.stringify(images) !== JSON.stringify(initialImages)) {
+            alert("Delete newly added images (or save changes) before deleting question")
+        } else {
         let newArray = [...questions]
         newArray.splice(questionIndex, 1)
-        setQuestions(newArray)
+        updateQuiz({questions: newArray})
+        // setQuestions(newArray)
+        }
     }
 
     const handleSubmit = (e) => {
         e.preventDefault();
-
         if (questionIndex >= 0) {
             const editedQuestions = [...questions]
             editedQuestions[questionIndex] = {
@@ -149,9 +123,11 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
                     correctAnswers: correctAnswers,
                     images: images
                 }
-                setQuestions(editedQuestions)
+                updateQuiz({questions: editedQuestions})
+                // setQuestions(editedQuestions)
             } else {
-            setQuestions(
+
+            const editedQuestions = 
                 [...questions, {
                     type: "fillInTheBlank",
                     fragments: fragments,
@@ -159,15 +135,39 @@ const BuildFillInTheBlank = ({questions, setQuestions, setNewQuestion, setNewQue
                     correctAnswers: correctAnswers,
                     images: images
                 }]
-            )
+            updateQuiz({questions: editedQuestions})
             setNewQuestion(false)
             setNewQuestionType("select")
+            setHasImages(false)
+            console.log("just set has images to false")
             }
     }
 
+    // const updateQuiz = async (theData) => {
+    //     setIsLoading("loading");
+    //     try {
+    //         // const token = await getAccessTokenSilently();
+    //         const response = await fetch(`/api/updateQuiz/${quizId}`, {
+    //             method: "PATCH",
+    //             headers : {
+    //                 "Accept": "application/json",
+    //                 "Content-Type": "application/json"
+    //                 // "authorization": `Bearer ${token}`
+    //             },
+    //             body: JSON.stringify(theData)
+    //             })
+    //         const data = await response.json();
+    //             console.log(data)
+    //             setIsLoading("")
+    //             setReload(data)
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // }
+
     return (
         <FillInTheBlankDiv> 
-            <ImageUpload setImages={setImages} images={images}/>
+            <ImageUpload questionIndex={questionIndex} setImages={setImages} images={images} hasImages={hasImages} setHasImages={setHasImages}/>
             <p className="para"> Write the complete text in the box below. Add a single underscore, _, wherever you'd like to add a blank. Then click "Verify Text" to generate answer inputs for each blank. 
                 You can edit and re-verify the text at any time. For best results, stop any rich text settings (bold, italic, etc.) before adding a new blank (blanks should not be rich text).  
             </p>
@@ -286,7 +286,6 @@ const FillInTheBlankDiv = styled.div`
     border: none; 
     margin-top: 2px; 
     height: 20px;
-    
 }
 
 .inputDiv {

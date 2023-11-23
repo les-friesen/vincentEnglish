@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { CircularProgress } from '@mui/material';
 import { FiTrash2 } from "react-icons/fi";
 
-const ImageUpload = ( {images, setImages} ) => {
+const ImageUpload = ( {images, setImages, hasImages, setHasImages, questionIndex} ) => {
 
     const [fileData, setFileData] = useState(); 
     const [selectedImage, setSelectedImage] = useState("");
@@ -22,29 +22,37 @@ const ImageUpload = ( {images, setImages} ) => {
                     method: "DELETE"
                 })
                 const data = await response.json();
-                    console.log(data)
-                    setIsLoading(false);
+                console.log(data)
+                setIsLoading(false);
+                let newArray = [...images];
+                newArray.splice(index, 1);
+                setImages(newArray);
+                if (images.length === 1 && !(questionIndex >= 0)) {
+                    setHasImages(false); 
+                    console.log("just set HasImages to false")
+                }
             } catch (error) {
-            console.log(error);
-            setIsLoading(false);
+                console.log(error);
+                setIsLoading(false);
             }
-        let newArray = [...images]
-        newArray.splice(index, 1)
-        setImages(newArray)
+        
     }
 
     const dragImage = useRef();
     const dragOverImage = useRef();
     
     const dragImageStart = (e, position) => {
+        e.stopPropagation();
         dragImage.current = position;  
     };
 
     const dragImageEnter = (e, position) => {
+        e.stopPropagation();
         dragOverImage.current = position;  
     };
 
     const imageDrop = (e) => {
+        e.stopPropagation();
         const copyImages = [...images];
         const dragImageContent = copyImages[dragImage.current];
         copyImages.splice(dragImage.current, 1);
@@ -119,10 +127,15 @@ const ImageUpload = ( {images, setImages} ) => {
                 const imageObject = { url: imageURL, public_id: publicID}
                 setSelectedImage(""); 
                 setIsLoading(false);
-                setImages([...images, imageObject])
+                setImages([...images, imageObject]);
+                if (!hasImages && !(questionIndex >= 0)) {
+                    setHasImages(true)
+                    console.log("just set HasImages to true")
+                };
         } catch (err) {
             console.error(err);
         }
+        
     };
 
     return(

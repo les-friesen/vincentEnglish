@@ -13,6 +13,7 @@ const MultipleChoice = ( {question, button, answers, currentQuestion, handleChan
                     return (
                         <li key={option}>
                             <input  type="radio" 
+                                    required
                                     id={`${currentQuestion+1}-1`} 
                                     disabled={button === "Check" ? false : true}
                                     name="choice" 
