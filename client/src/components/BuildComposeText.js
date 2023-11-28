@@ -5,11 +5,12 @@ import { FiTrash2 } from "react-icons/fi";
 import ImageUpload from "./ImageUpload";
 import { Editor } from "@tinymce/tinymce-react";
 import { ReloadContext } from "./ReloadContext";
+import { CircularProgress } from "@mui/material";
 
 
 const BuildComposeText = ({questions, setQuestions, quizId, updateQuiz, hasImages, setHasImages, setNewQuestion, setNewQuestionType, initialFragments, initialQuestionText, initialImages, questionIndex, handleMouseEnter, handleMouseOut}) => {
     
-    const { reload, setReload, setIsLoading } = useContext(ReloadContext); 
+    const { isLoading, setIsLoading } = useContext(ReloadContext); 
     const [fragments, setFragments] = useState([])
     const [questionText, setQuestionText] = useState("")
     const [images, setImages] = useState([])
@@ -47,18 +48,33 @@ const BuildComposeText = ({questions, setQuestions, quizId, updateQuiz, hasImage
         setFragments((questionText.split(/_+/g)))
     }
 
-    const deleteQuestion = () => {
-        if (questionIndex >= 0 && JSON.stringify(images) !== JSON.stringify(initialImages)) {
-            alert("Delete newly added images (or save changes) before deleting question")
-        } else {
-        let newArray = [...questions]
-        newArray.splice(questionIndex, 1)
-        updateQuiz({questions: newArray})
-        // setQuestions(newArray)
+    const deleteImage = async (index) => {
+        let encodedValue = encodeURIComponent(images[index].public_id)
+        try {
+            const response = await fetch(`/api/deleteImage/${encodedValue}`, {
+                method: "DELETE"
+            })
+            const data = await response.json();
+            console.log(data)
+        } catch (error) {
+            console.log(error);
         }
     }
 
-    const handleSubmit = (e) => {
+    const deleteQuestion = async () => {
+        if (questionIndex >= 0 && images.length > 0) {
+            images.forEach((image, index) => {
+                deleteImage(index)
+                console.log(`question ${index} deleted`)
+            })
+        } 
+        let newArray = [...questions]
+        newArray.splice(questionIndex, 1)
+        updateQuiz({questions: newArray}, `deleteQuestion-${questionIndex}`)
+        // setQuestions(newArray)
+    }
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (questionIndex >= 0) {
             const editedQuestions = [...questions]
@@ -69,7 +85,7 @@ const BuildComposeText = ({questions, setQuestions, quizId, updateQuiz, hasImage
                     correctAnswers: [],
                     images: images
             }
-            updateQuiz({questions: editedQuestions})
+            updateQuiz({questions: editedQuestions}, `savingQuestion-${questionIndex}`)
             // setQuestions(editedQuestions)
         } else {
             const editedQuestions = [...questions, {
@@ -79,7 +95,7 @@ const BuildComposeText = ({questions, setQuestions, quizId, updateQuiz, hasImage
                 correctAnswers: [],
                 images: images
             }]
-            updateQuiz({questions: editedQuestions})
+            await updateQuiz({questions: editedQuestions}, `savingQuestion-${questionIndex}`)
             // setQuestions(editedQuestions)
             setNewQuestion(false)
             setNewQuestionType("select")
@@ -170,14 +186,20 @@ const BuildComposeText = ({questions, setQuestions, quizId, updateQuiz, hasImage
                                     : fragments.length > 0 
                                     ? false 
                                     : true}>
-                    Save Question
-                </button>
-                <button className="trash" 
-                        onClick={deleteQuestion}
-                        disabled={questionIndex >= 0 ? false :  true} 
-                        type="button"> 
-                    <FiTrash2 size={15}/>
-                </button>
+                                        { isLoading === `savingQuestion-${questionIndex}`
+                                            ? <CircularProgress size={11} />
+                                            : "Save Question"
+                                        }
+                    </button>
+                    <button className="trash" 
+                            onClick={deleteQuestion}
+                            disabled={questionIndex >= 0 ? false : true} 
+                            type="button"> 
+                                { isLoading === `deleteQuestion-${questionIndex}` 
+                                    ? <CircularProgress size={11} />
+                                    : <FiTrash2 size={15}/>
+                                }
+                    </button>
             </div>    
         </ComposeTextDiv>
         )
@@ -187,6 +209,7 @@ const ComposeTextDiv = styled.div`
 
 .submitButton {
     margin-top: 0px; 
+    width: 105px; 
 }
 
 .saveDeleteContainer {

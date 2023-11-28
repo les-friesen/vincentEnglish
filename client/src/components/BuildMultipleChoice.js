@@ -1,12 +1,15 @@
 import styled from "styled-components"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useContext } from "react"
 import { TextareaAutosize } from '@mui/base/TextareaAutosize';
 import { FiTrash2 } from 'react-icons/fi'; 
 import ImageUpload from "./ImageUpload";
 import { Editor } from '@tinymce/tinymce-react'
+import { CircularProgress } from "@mui/material";
+import { ReloadContext } from "./ReloadContext";
 
 const BuildMultipleChoice = ({questions, setQuestions, quizId, updateQuiz, hasImages, setHasImages, setNewQuestion, setNewQuestionType, initialQuestionText, initialCorrectAnswers, initialOptions, initialImages, questionIndex, handleMouseEnter, handleMouseOut}) => {
     
+    const { isLoading } = useContext(ReloadContext)
     const [options, setOptions] = useState([])
     const [questionText, setQuestionText] = useState("")
     const [correctAnswers, setCorrectAnswers] = useState("")
@@ -97,18 +100,44 @@ const BuildMultipleChoice = ({questions, setQuestions, quizId, updateQuiz, hasIm
         setOptions(newArray)
     }
 
-    const deleteQuestion = () => {
-        if (questionIndex >= 0 && JSON.stringify(images) !== JSON.stringify(initialImages)) {
-            alert("Delete newly added images (or save changes) before deleting question")
-        } else {
-        let newArray = [...questions]
-        newArray.splice(questionIndex, 1)
-        // setQuestions(newArray)
-        updateQuiz({questions: newArray})
+    const deleteImage = async (index) => {
+        let encodedValue = encodeURIComponent(images[index].public_id)
+        try {
+            const response = await fetch(`/api/deleteImage/${encodedValue}`, {
+                method: "DELETE"
+            })
+            const data = await response.json();
+            console.log(data)
+        } catch (error) {
+            console.log(error);
         }
     }
 
-    const handleSubmit = (e) => {
+    const deleteQuestion = async () => {
+        if (questionIndex >= 0 && images.length > 0) {
+            images.forEach((image, index) => {
+                deleteImage(index)
+                console.log(`question ${index} deleted`)
+            })
+        } 
+        let newArray = [...questions]
+        newArray.splice(questionIndex, 1)
+        updateQuiz({questions: newArray}, `deleteQuestion-${questionIndex}`)
+        // setQuestions(newArray)
+    }
+
+    // const deleteQuestion = () => {
+    //     if (questionIndex >= 0 && images.length > 0) {
+    //         alert("Delete all images before deleting question")
+    //     } else {
+    //     let newArray = [...questions]
+    //     newArray.splice(questionIndex, 1)
+    //     // setQuestions(newArray)
+    //     updateQuiz({questions: newArray}, `deleteQuestion-${questionIndex}`)
+    //     }
+    // }
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (questionIndex >= 0) {
             const editedQuestions = [...questions]
@@ -119,7 +148,7 @@ const BuildMultipleChoice = ({questions, setQuestions, quizId, updateQuiz, hasIm
                     correctAnswers: correctAnswers,
                     images: images
                 }
-                updateQuiz({questions: editedQuestions})
+                updateQuiz({questions: editedQuestions}, `savingQuestion-${questionIndex}`)
                 // setQuestions(editedQuestions)
             } else {
             const editedQuestions = 
@@ -130,7 +159,7 @@ const BuildMultipleChoice = ({questions, setQuestions, quizId, updateQuiz, hasIm
                     correctAnswers: correctAnswers,
                     images: images
                 }]
-            updateQuiz({questions: editedQuestions})
+            await updateQuiz({questions: editedQuestions}, `savingQuestion-${questionIndex}`)
             setNewQuestion(false)
             setNewQuestionType("select")
             setHasImages(false)
@@ -194,13 +223,13 @@ const BuildMultipleChoice = ({questions, setQuestions, quizId, updateQuiz, hasIm
                                     onDragOver={(e) => e.preventDefault()}
                                     draggable>
                                         <input  type="radio" 
-                                        name="choice" 
+                                        name={`${questionIndex}-choice`}
                                         className="choice"
                                         onChange={(e) => handleAnswerChange(e.target.value)}
                                         checked={correctAnswers === option ? true : false}
                                         required
                                         value={option}/>
-                                    <label htmlFor="choice" 
+                                    <label htmlFor={`${questionIndex}-choice`} 
                                         >{option}</label>
                                     <button 
                                         type="button" 
@@ -225,12 +254,21 @@ const BuildMultipleChoice = ({questions, setQuestions, quizId, updateQuiz, hasIm
                             : questionText.length > 0 && options.length >= 2 && correctAnswers.length > 0
                             ? false 
                             : true}>
-                            Save Question
+                                { isLoading === `savingQuestion-${questionIndex}`
+                                    ? <CircularProgress size={11} />
+                                    : "Save Question"
+                                }
                     </button>
                     <button className="trash" 
                             onClick={deleteQuestion}
-                            type="button">
-                            <FiTrash2 size={15}/>
+                            disabled={questionIndex >= 0 ? false : true} 
+                            type="button"> 
+                                { isLoading === `deleteQuestion-${questionIndex}` 
+                                    ? <CircularProgress size={11} />
+                                    // : isLoading === 'savingNewQuestion' && !(questionIndex >= 0)
+                                    // ? <CircularProgress size={11} />
+                                    : <FiTrash2 size={15}/>
+                                }
                     </button>
                 </div>
         </MultipleChoiceDiv>
@@ -290,6 +328,7 @@ li {
 
 .submitButton {
     margin-top: 0px; 
+    width: 105px; 
 }
 
 .saveDeleteContainer {

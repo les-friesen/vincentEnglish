@@ -29,10 +29,8 @@ const uploadImage = async (req, res) => {
 const deleteImage = async (req, res) => {
     try {
         const fileStr = req.params.id;
-        console.log(fileStr)
         const uploadResponse = await cloudinary.uploader.destroy(fileStr);
-        console.log(uploadResponse);
-        res.status(200).json({ status: 200, data: uploadResponse });
+        res.status(200).json({ status: 200, data: uploadResponse, message: "Image deleted" });
     } catch (err) {
         console.error(err);
         res.status(500).json({ status: 500, data: req.body.data, message: err.message });
@@ -118,11 +116,45 @@ const updateQuiz = async (req, res) => {
     }
 }
 
+const deleteQuiz = async (req, res) => {
+    try {
+        const client = new MongoClient(MONGO_URI, options);
+        await client.connect();
+        const db = client.db("vincentenglish");
+        console.log("connected!");
+        const _id = req.params.quizId; 
+        const queryResult = await db.collection("quizzes").findOne({ _id });
+        let allImages = []
+        queryResult.questions.forEach((question) => {
+            question.images.forEach((image) => {
+                allImages.push(image.public_id)
+            })
+        })
+        if (allImages.length > 0) {
+        const imageResult = await cloudinary.api.delete_resources(allImages)
+        console.log(imageResult)
+        }
+
+        // make an array of all public.id's. batch delete from cloudinary. 
+            // if (queryResult.userId !== req.auth.payload.sub ) {
+            //     return res.status(401).json({status: 401, data: null, message: "Unauthorized"})
+            // }
+        const result = await db.collection("quizzes").deleteOne({_id});
+        client.close();
+        console.log("disconnected!");
+        res.status(200).json({ status: 200, data: result, message: "Quiz successfully deleted" });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ status: 500, data: req.body, message: err.message });
+    }
+}
+
 module.exports = {
     uploadImage,
     deleteImage,
     addQuiz,
     getQuizzes,
     getQuizById,
-    updateQuiz
+    updateQuiz,
+    deleteQuiz
 };

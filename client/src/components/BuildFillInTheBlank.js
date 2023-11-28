@@ -1,12 +1,15 @@
 import styled from "styled-components"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useContext } from "react"
 import { TextareaAutosize } from '@mui/base/TextareaAutosize';
 import { FiTrash2 } from "react-icons/fi";
 import ImageUpload from "./ImageUpload";
 import { Editor } from "@tinymce/tinymce-react";
+import { ReloadContext } from "./ReloadContext";
+import { CircularProgress } from "@mui/material";
 
 const BuildFillInTheBlank = ({questions, setQuestions, quizId, updateQuiz, setNewQuestion, setNewQuestionType, hasImages, setHasImages, initialQuestionText, initialFragments, initialCorrectAnswers, initialImages, questionIndex, handleMouseEnter, handleMouseOut}) => {
     
+    const { isLoading } = useContext(ReloadContext)
     const [fragments, setFragments] = useState([])
     const [questionText, setQuestionText] = useState("")
     const [correctAnswers, setCorrectAnswers] = useState([])
@@ -101,18 +104,44 @@ const BuildFillInTheBlank = ({questions, setQuestions, quizId, updateQuiz, setNe
         setCorrectAnswers(newAnswers)
     }
 
-    const deleteQuestion = () => {
-        if (questionIndex >= 0 && JSON.stringify(images) !== JSON.stringify(initialImages)) {
-            alert("Delete newly added images (or save changes) before deleting question")
-        } else {
-        let newArray = [...questions]
-        newArray.splice(questionIndex, 1)
-        updateQuiz({questions: newArray})
-        // setQuestions(newArray)
+    const deleteImage = async (index) => {
+        let encodedValue = encodeURIComponent(images[index].public_id)
+        try {
+            const response = await fetch(`/api/deleteImage/${encodedValue}`, {
+                method: "DELETE"
+            })
+            const data = await response.json();
+            console.log(data)
+        } catch (error) {
+            console.log(error);
         }
     }
 
-    const handleSubmit = (e) => {
+    const deleteQuestion = async () => {
+        if (questionIndex >= 0 && images.length > 0) {
+            images.forEach((image, index) => {
+                deleteImage(index)
+                console.log(`question ${index} deleted`)
+            })
+        } 
+        let newArray = [...questions]
+        newArray.splice(questionIndex, 1)
+        updateQuiz({questions: newArray}, `deleteQuestion-${questionIndex}`)
+        // setQuestions(newArray)
+    }
+
+    // const deleteQuestion = () => {
+    //     if (questionIndex >= 0 && images.length > 0) {
+    //         alert("Delete all images before deleting question")
+    //     } else {
+    //     let newArray = [...questions]
+    //     newArray.splice(questionIndex, 1)
+    //     updateQuiz({questions: newArray}, `deleteQuestion-${questionIndex}`)
+    //     // setQuestions(newArray)
+    //     }
+    // }
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (questionIndex >= 0) {
             const editedQuestions = [...questions]
@@ -123,7 +152,7 @@ const BuildFillInTheBlank = ({questions, setQuestions, quizId, updateQuiz, setNe
                     correctAnswers: correctAnswers,
                     images: images
                 }
-                updateQuiz({questions: editedQuestions})
+                updateQuiz({questions: editedQuestions}, `savingQuestion-${questionIndex}`)
                 // setQuestions(editedQuestions)
             } else {
 
@@ -135,7 +164,7 @@ const BuildFillInTheBlank = ({questions, setQuestions, quizId, updateQuiz, setNe
                     correctAnswers: correctAnswers,
                     images: images
                 }]
-            updateQuiz({questions: editedQuestions})
+            await updateQuiz({questions: editedQuestions}, `savingQuestion-${questionIndex}`)
             setNewQuestion(false)
             setNewQuestionType("select")
             setHasImages(false)
@@ -262,15 +291,19 @@ const BuildFillInTheBlank = ({questions, setQuestions, quizId, updateQuiz, setNe
                                                 : fragments.join("_") !== questionText
                                                 ? true
                                                 : false}>
-                                        Save Question
+                                                    { isLoading === `savingQuestion-${questionIndex}`
+                                                        ? <CircularProgress size={11} />
+                                                        : "Save Question"
+                                                    }
                                 </button>
-                                <button 
-                                            type="button"
-                                            className="trash" 
-                                            onClick={deleteQuestion}
-                                            disabled={questionIndex >= 0 ? false : true} 
-                                            > 
-                                        <FiTrash2 size={15}/>
+                                <button className="trash" 
+                                        onClick={deleteQuestion}
+                                        disabled={questionIndex >= 0 ? false : true} 
+                                        type="button"> 
+                                            { isLoading === `deleteQuestion-${questionIndex}` 
+                                                ? <CircularProgress size={11} />
+                                                : <FiTrash2 size={15}/>
+                                            }
                                 </button>
                             </div>
                         </>
@@ -306,6 +339,10 @@ const FillInTheBlankDiv = styled.div`
 
 .submitButton, .addAnswer, .addImages {
     margin-top: 0px;
+}
+
+.submitButton {
+    width: 105px; 
 }
 
 .answer {

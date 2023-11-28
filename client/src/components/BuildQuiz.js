@@ -6,13 +6,15 @@ import BuildComposeText from "./BuildComposeText";
 import BuildMultipleChoice from "./BuildMultipleChoice";
 import Quiz2 from "./Quiz2";
 import { ReloadContext } from "./ReloadContext";
+import { CircularProgress } from "@mui/material";
 
 const BuildQuiz = () => {
 
     const { quizId } = useParams();
     const navigate = useNavigate(); 
     const [questions, setQuestions] = useState([]);
-    const [formData, setFormData] = useState({title: "", subtitle: "", _id: ""});
+    const [quizData, setQuizData] = useState({title: "", subtitle: "", _id: ""});
+    const [newQuizData, setNewQuizData] = useState({title: "", subtitle: ""});
     const [newQuestion, setNewQuestion] = useState(false);
     const [newQuestionType, setNewQuestionType] = useState("select");
     const [preview, setPreview] = useState(false);
@@ -20,11 +22,13 @@ const BuildQuiz = () => {
     const [isDraggable, setIsDraggable] = useState(true); 
     const [hasImages, setHasImages] = useState(false); 
 
-    const { reload, setReload, setIsLoading } = useContext(ReloadContext); 
+    const { reload, setReload, isLoading, setIsLoading } = useContext(ReloadContext); 
     
     
     const getQuiz = async () => {
+        if (isLoading === "") {
         setIsLoading("loading");
+        }
         try {
             // const token = await getAccessTokenSilently();
             const response = await fetch(`/api/getQuizById/${quizId}`, 
@@ -39,7 +43,8 @@ const BuildQuiz = () => {
                 setIsLoading("");
             }
             else {
-                setFormData({title: data.data.title, subtitle: data.data.subtitle, _id: data.data._id });
+                setQuizData({title: data.data.title, subtitle: data.data.subtitle, _id: data.data._id });
+                setNewQuizData({title: data.data.title, subtitle: data.data.subtitle, _id: data.data._id });
                 setQuestions(data.data.questions)
                 setIsLoading("");
             } 
@@ -60,10 +65,14 @@ const BuildQuiz = () => {
     }
 
     const handleFormChange = (id, value) => {
-        setFormData({
-            ...formData,
+        setNewQuizData({
+            ...newQuizData,
             [id] : value
         }) 
+    }
+
+    const handleChangeTitle = () => {
+        updateQuiz(newQuizData, "updateTitle")
     }
 
     const handleAddNewQuestion = () => {
@@ -111,15 +120,13 @@ const BuildQuiz = () => {
         dragQuestion.current = null;
         dragOverQuestion.current = null;
         setQuestions(copyQuestions);
-       
-        updateQuiz({questions: copyQuestions})
-        
+        updateQuiz({questions: copyQuestions}, "questionOrderChange")
         setIsDragging(); 
     };
 
     //Function for adding the expense when hitting the "add expense" button. 
-    const updateQuiz = async (theData) => {
-        setIsLoading("loading");
+    const updateQuiz = async (theData, loadingMessage) => {
+        setIsLoading(loadingMessage);
         try {
             // const token = await getAccessTokenSilently();
             const response = await fetch(`/api/updateQuiz/${quizId}`, {
@@ -133,7 +140,7 @@ const BuildQuiz = () => {
                 })
             const data = await response.json();
                 console.log(data)
-                setIsLoading("")
+                // setIsLoading("")
                 setReload(data)
         } catch (error) {
             console.log(error);
@@ -142,176 +149,194 @@ const BuildQuiz = () => {
 
     return (
         <Container>
-            <div className="subContainer">
-                <p className="title para">Edit Module</p>
-                <div className="newQuestionContainer">
-                        <div className="introInputDiv">
-                            <label>Title</label>
-                            <input  type="text"
-                                    id="title"
-                                    value={formData.title}
-                                    onChange={(e) => handleFormChange(e.target.id, e.target.value)}
-                                    />
-                        </div>
-                        <div className="introInputDiv">
-                            <label>Subtitle</label>
-                            <input  type="text"
-                                    id="subtitle"
-                                    value={formData.subtitle}
-                                    onChange={(e) => handleFormChange(e.target.id, e.target.value)}
-                                    />
-                        </div>
-                        <div className="introInputDiv">
-                            <label>ID</label>
-                            <input  type="text"
-                                    id="_id"
-                                    disabled
-                                    value={formData._id}
-                                    onChange={(e) => handleFormChange(e.target.id, e.target.value)}
-                                    />
-                        </div>
-                        <button>Update Title/Subtitle</button>
-                </div>
-                <button type="button" 
-                        disabled={questions.length < 1 || newQuestion} 
-                        onClick={handlePreview}>
-                            {preview ? "Cancel Preview" : "Preview Quiz"}
-                </button>
-                { preview &&    
-                    <Quiz2 questions={questions}/>
-                }
-                { questions.length > 0 && !preview && 
-                    questions.map((question, index) => {
-                        return (
-                        <div    className={`newQuestionContainer ${isDragging === index ? "isDragging" : ""}`}
-                                key={index} 
-                                onDragEnter={(e) => dragQuestionEnter(e, index)}
-                                onDragEnd={dropQuestion}
-                                onDragOver={(e) => {e.preventDefault()}}
-                                onDragStart={(e) => dragQuestionStart(e, index)}
-                                draggable={isDraggable}>
-                            <span>{index+1}.  </span>           
-                            { question.type === "fillInTheBlank" &&
-                            <>
-                                <span className="heading">Fill In The Blank</span>
-                                <BuildFillInTheBlank 
-                                        questions={questions} 
-                                        quizId={quizId}
-                                        updateQuiz={updateQuiz}
-                                        // hasImages={hasImages}
-                                        // setHasImages={setHasImages}
-                                        setQuestions={setQuestions} 
-                                        setNewQuestion={setNewQuestion} 
-                                        setNewQuestionType={setNewQuestionType}
-                                        initialFragments={question.fragments}
-                                        initialQuestionText={question.questionText}
-                                        initialCorrectAnswers={question.correctAnswers}
-                                        initialImages={question.images}
-                                        questionIndex={index}
-                                        handleMouseEnter={handleMouseEnter}
-                                        handleMouseOut={handleMouseOut}
-                                        
-                                        />
-                                </>
-                            }
-                            { question.type === "composeText" &&
-                            <>
-                                <span className="heading">Compose Text</span>
-                                <BuildComposeText 
-                                        questions={questions} 
-                                        // hasImages={hasImages}
-                                        // setHasImages={setHasImages}
-                                        quizId={quizId}
-                                        updateQuiz={updateQuiz}
-                                        setQuestions={setQuestions} 
-                                        setNewQuestion={setNewQuestion} 
-                                        setNewQuestionType={setNewQuestionType}
-                                        initialFragments={question.fragments}
-                                        initialQuestionText={question.questionText}
-                                        initialImages={question.images}
-                                        questionIndex={index}
-                                        handleMouseEnter={handleMouseEnter}
-                                        handleMouseOut={handleMouseOut}/> 
-                                </>
-                            }
-                            { question.type === "multipleChoice" &&
-                            <>
-                                <span className="heading">Multiple Choice</span>
-                                <BuildMultipleChoice 
-                                        questions={questions} 
-                                        quizId={quizId}
-                                        updateQuiz={updateQuiz}
-                                        // hasImages={hasImages}
-                                        // setHasImages={setHasImages}
-                                        setQuestions={setQuestions} 
-                                        setNewQuestion={setNewQuestion} 
-                                        setNewQuestionType={setNewQuestionType}
-                                        initialQuestionText={question.question}
-                                        initialCorrectAnswers={question.correctAnswers}
-                                        initialOptions={question.options}
-                                        initialImages={question.images}
-                                        questionIndex={index}
-                                        handleMouseEnter={handleMouseEnter}
-                                        handleMouseOut={handleMouseOut}/>
-                            </>  
-                            }  
-                            
-                        </div>
-                        )
-                    })
-                }
-                {!preview && 
-                <button onClick={handleAddNewQuestion}>{newQuestion ? "Cancel" : "Add New Question"}</button>
-                }
-                {
-                    newQuestion &&
+            {   isLoading === "loading"
+            ?   <ProgressDiv>
+                    <CircularProgress /> 
+                </ProgressDiv>
+            :   <div className="subContainer">
+                    <p className="title para">Edit Module</p>
                     <div className="newQuestionContainer">
-                        <select name="type" disabled={hasImages ? true : false} id="type" onChange={(e) => handleSelectType(e.target.value)} style={{fontFamily: "Arial"}}>
-                            <option value="select">Choose Type of Question</option>
-                            <option value="fillInTheBlank">Fill in the Blank</option>
-                            <option value="multipleChoice">Multiple Choice</option>
-                            <option value="composeText">Compose Text</option>
-                        </select>
-                        { newQuestionType === "fillInTheBlank" &&
-                            <BuildFillInTheBlank 
-                                quizId={quizId}
-                                updateQuiz={updateQuiz}
-                                questions={questions} 
-                                hasImages={hasImages}
-                                setHasImages={setHasImages}
-                                setQuestions={setQuestions} 
-                                setNewQuestion={setNewQuestion} 
-                                setNewQuestionType={setNewQuestionType}/>
-                        }
-                        { newQuestionType === "composeText" &&
-                            <BuildComposeText 
-                                quizId={quizId}
-                                updateQuiz={updateQuiz}
-                                questions={questions} 
-                                hasImages={hasImages}
-                                setHasImages={setHasImages}
-                                setQuestions={setQuestions} 
-                                setNewQuestion={setNewQuestion} 
-                                setNewQuestionType={setNewQuestionType}/> 
-                        }
-                        { newQuestionType === "multipleChoice" &&
-                            <BuildMultipleChoice 
-                                quizId={quizId}
-                                questions={questions} 
-                                updateQuiz={updateQuiz}
-                                setQuestions={setQuestions}
-                                hasImages={hasImages}
-                                setHasImages={setHasImages} 
-                                setNewQuestion={setNewQuestion} 
-                                setNewQuestionType={setNewQuestionType}/>
-                        }
+                            <div className="introInputDiv">
+                                <label>Title</label>
+                                <input  type="text"
+                                        id="title"
+                                        value={newQuizData.title}
+                                        onChange={(e) => handleFormChange(e.target.id, e.target.value)}
+                                        />
+                            </div>
+                            <div className="introInputDiv">
+                                <label>Subtitle</label>
+                                <input  type="text"
+                                        id="subtitle"
+                                        value={newQuizData.subtitle}
+                                        onChange={(e) => handleFormChange(e.target.id, e.target.value)}
+                                        />
+                            </div>
+                            <div className="introInputDiv">
+                                <label>ID</label>
+                                <input  type="text"
+                                        id="_id"
+                                        disabled
+                                        value={quizData._id}
+                                        onChange={(e) => handleFormChange(e.target.id, e.target.value)}
+                                        />
+                            </div>
+                            <button
+                                className="updateTitle"
+                                disabled={quizData.title === newQuizData.title && quizData.subtitle === newQuizData.subtitle}
+                                onClick={handleChangeTitle}>
+                                    {
+                                        isLoading === "updateTitle" 
+                                        ? <CircularProgress size={11} />
+                                        : "Update Title/Subtitle"
+                                    }
+                            </button>
                     </div>
-                }
-                
-            </div> 
+                    <button type="button" 
+                            disabled={questions.length < 1 || newQuestion} 
+                            onClick={handlePreview}>
+                                {preview ? "Cancel Preview" : "Preview Quiz"}
+                    </button>
+                    { preview &&    
+                        <Quiz2 questions={questions}/>
+                    }
+                    { questions.length > 0 && !preview && 
+                        questions.map((question, index) => {
+                            return (
+                            <div    className={`newQuestionContainer ${isDragging === index ? "isDragging" : ""}`}
+                                    key={index} 
+                                    onDragEnter={(e) => dragQuestionEnter(e, index)}
+                                    onDragEnd={dropQuestion}
+                                    onDragOver={(e) => {e.preventDefault()}}
+                                    onDragStart={(e) => dragQuestionStart(e, index)}
+                                    draggable={isDraggable}>
+                                <span>{index+1}.  </span>           
+                                { question.type === "fillInTheBlank" &&
+                                <>
+                                    <span className="heading">Fill In The Blank</span>
+                                    <BuildFillInTheBlank 
+                                            questions={questions} 
+                                            quizId={quizId}
+                                            updateQuiz={updateQuiz}
+                                            setQuestions={setQuestions} 
+                                            setNewQuestion={setNewQuestion} 
+                                            setNewQuestionType={setNewQuestionType}
+                                            initialFragments={question.fragments}
+                                            initialQuestionText={question.questionText}
+                                            initialCorrectAnswers={question.correctAnswers}
+                                            initialImages={question.images}
+                                            questionIndex={index}
+                                            handleMouseEnter={handleMouseEnter}
+                                            handleMouseOut={handleMouseOut}
+                                            />
+                                    </>
+                                }
+                                { question.type === "composeText" &&
+                                <>
+                                    <span className="heading">Compose Text</span>
+                                    <BuildComposeText 
+                                            questions={questions} 
+                                            // hasImages={hasImages}
+                                            // setHasImages={setHasImages}
+                                            quizId={quizId}
+                                            updateQuiz={updateQuiz}
+                                            setQuestions={setQuestions} 
+                                            setNewQuestion={setNewQuestion} 
+                                            setNewQuestionType={setNewQuestionType}
+                                            initialFragments={question.fragments}
+                                            initialQuestionText={question.questionText}
+                                            initialImages={question.images}
+                                            questionIndex={index}
+                                            handleMouseEnter={handleMouseEnter}
+                                            handleMouseOut={handleMouseOut}/> 
+                                    </>
+                                }
+                                { question.type === "multipleChoice" &&
+                                <>
+                                    <span className="heading">Multiple Choice</span>
+                                    <BuildMultipleChoice 
+                                            questions={questions} 
+                                            quizId={quizId}
+                                            updateQuiz={updateQuiz}
+                                            // hasImages={hasImages}
+                                            // setHasImages={setHasImages}
+                                            setQuestions={setQuestions} 
+                                            setNewQuestion={setNewQuestion} 
+                                            setNewQuestionType={setNewQuestionType}
+                                            initialQuestionText={question.question}
+                                            initialCorrectAnswers={question.correctAnswers}
+                                            initialOptions={question.options}
+                                            initialImages={question.images}
+                                            questionIndex={index}
+                                            handleMouseEnter={handleMouseEnter}
+                                            handleMouseOut={handleMouseOut}/>
+                                </>  
+                                }  
+                                
+                            </div>
+                            )
+                        })
+                    }
+                    {!preview && 
+                    <button onClick={handleAddNewQuestion}>{newQuestion ? "Cancel" : "Add New Question"}</button>
+                    }
+                    {
+                        newQuestion &&
+                        <div className="newQuestionContainer">
+                            <select name="type" disabled={hasImages ? true : false} id="type" onChange={(e) => handleSelectType(e.target.value)} style={{fontFamily: "Arial"}}>
+                                <option value="select">Choose Type of Question</option>
+                                <option value="fillInTheBlank">Fill in the Blank</option>
+                                <option value="multipleChoice">Multiple Choice</option>
+                                <option value="composeText">Compose Text</option>
+                            </select>
+                            { newQuestionType === "fillInTheBlank" &&
+                                <BuildFillInTheBlank 
+                                    quizId={quizId}
+                                    updateQuiz={updateQuiz}
+                                    questions={questions} 
+                                    hasImages={hasImages}
+                                    setHasImages={setHasImages}
+                                    setQuestions={setQuestions} 
+                                    setNewQuestion={setNewQuestion} 
+                                    setNewQuestionType={setNewQuestionType}/>
+                            }
+                            { newQuestionType === "composeText" &&
+                                <BuildComposeText 
+                                    quizId={quizId}
+                                    updateQuiz={updateQuiz}
+                                    questions={questions} 
+                                    hasImages={hasImages}
+                                    setHasImages={setHasImages}
+                                    setQuestions={setQuestions} 
+                                    setNewQuestion={setNewQuestion} 
+                                    setNewQuestionType={setNewQuestionType}/> 
+                            }
+                            { newQuestionType === "multipleChoice" &&
+                                <BuildMultipleChoice 
+                                    quizId={quizId}
+                                    questions={questions} 
+                                    updateQuiz={updateQuiz}
+                                    setQuestions={setQuestions}
+                                    hasImages={hasImages}
+                                    setHasImages={setHasImages} 
+                                    setNewQuestion={setNewQuestion} 
+                                    setNewQuestionType={setNewQuestionType}/>
+                            }
+                        </div>
+                    }  
+                </div> 
+            }
         </Container>
     )
 }
+
+const ProgressDiv = styled.div`
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center; 
+`
 
 const Container = styled.div`
 font-family: Arial; 
@@ -381,6 +406,10 @@ input, textarea {
 
 .para {
     margin: 10px 0px 10px 0px; 
+}
+
+.updateTitle {
+    width: 135px; 
 }
 
 button {
