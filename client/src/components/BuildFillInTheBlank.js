@@ -339,6 +339,7 @@ const FillInTheBlankDiv = styled.div`
 
 .submitButton, .addAnswer, .addImages {
     margin-top: 0px;
+    height: 20px; 
 }
 
 .submitButton {
@@ -352,7 +353,7 @@ const FillInTheBlankDiv = styled.div`
     margin: 1px 0px 1px 5px;  
     padding-left: 5px; 
     border: solid grey 1px; 
-    height: 20px; 
+    height: 18px; 
     display: flex;
     flex-direction: row;
     align-items: center; 

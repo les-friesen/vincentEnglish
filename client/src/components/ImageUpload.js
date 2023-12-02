@@ -35,7 +35,6 @@ const ImageUpload = ( {images, setImages, hasImages, setHasImages, questionIndex
                 console.log(error);
                 setIsLoading(false);
             }
-        
     }
 
     const dragImage = useRef();

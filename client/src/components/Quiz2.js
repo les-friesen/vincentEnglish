@@ -19,11 +19,11 @@ const Quiz2 = ( {questions} ) => {
     const [answers, setAnswers] = useState({})
     const [redos, setRedos] = useState([])
 
-    // useEffect(() => {
-    //     if (currentQuestion < questions.length && questions[currentQuestion].type === "fillInTheBlank") {
-    //         inputRef.current.focus();
-    //     }
-    //     }, [currentQuestion]);
+    useEffect(() => {
+        if (currentQuestion < questions.length && questions[currentQuestion].type === "fillInTheBlank") {
+            inputRef.current.focus();
+        }
+        }, [currentQuestion]);
     
     useEffect(() => {
         if (button === "Continue" && currentQuestion < questions.length)
@@ -280,28 +280,25 @@ input, .composeText {
     font-family: Arial; 
 }
 
-.correct {
-    background-color: green; 
-    color: white;
-    margin: 0px 3px 0px 3px;
+span.correct, span.incorrect {
     padding: 0px 3px 0px 3px; 
-    font-size: 0.9em; 
-    display: inline-block; 
-    border-radius: 5px; 
-}
-.incorrect {
-    background-color: red;
-    color: white; 
-    margin: 0px 3px 0px 3px;
-    padding: 0px 3px 0px 3px; 
-    font-size: 0.9em; 
+    margin: 0px 3px 0px 3px; 
+    font-size: 0.9em;
     display: inline-block;
     border-radius: 5px; 
 }
-.regular {
-    padding: 0px 3px 0px 3px; 
-    
+
+.correct {
+    background-color: green; 
+    color: white;
 }
+
+.incorrect {
+    background-color: red;
+    color: white; 
+}
+
+
 .compose {
     background-color: purple;
     color: white; 
